@@ -5,6 +5,7 @@ import { TradingDataProvider } from '@/context/TradingDataContext';
 import { AuthProvider } from '@/context/AuthContext';
 import { AOSProvider } from '@/components/AOSProvider';
 import { ScrollProgressBar } from '@/components/ScrollProgressBar';
+import { GoldStarChatWidget } from '@/components/GoldStarChatWidget';
 
 export const metadata: Metadata = {
   title: 'Gold Star - MT5 Bot Live Performance Dashboard',
@@ -32,6 +33,7 @@ export default function RootLayout({
               <AOSProvider>
                 <ScrollProgressBar />
                 {children}
+                <GoldStarChatWidget />
               </AOSProvider>
             </TradingDataProvider>
           </LanguageProvider>
