@@ -4,13 +4,16 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useTradingData } from '@/context/TradingDataContext';
-import { ShieldCheck, X, ArrowRight, MessageCircle, Lock, Eye, KeyRound } from 'lucide-react';
+import { ShieldCheck, X, ArrowRight, MessageCircle, Lock, Eye, KeyRound, Mail } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 export function InvestorLoginModal() {
   const router = useRouter();
-  const { isLoginModalOpen, setIsLoginModalOpen, loginAsGuest, loginWithPassword } = useAuth();
+  const { isLoginModalOpen, setIsLoginModalOpen, loginAsGuest, loginWithEmail, loginWithPassword } = useAuth();
   const { data } = useTradingData();
+  const [email, setEmail] = useState('');
+  const [emailError, setEmailError] = useState('');
+  const [isEmailLoading, setIsEmailLoading] = useState(false);
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
@@ -29,6 +32,35 @@ export function InvestorLoginModal() {
     triggerConfetti();
     loginAsGuest();
     router.push('/terminal');
+  };
+
+  const handleEmailSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setEmailError('');
+    const cleanEmail = email.trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
+      setEmailError('Please enter a valid Gmail / email address.');
+      return;
+    }
+
+    setIsEmailLoading(true);
+    try {
+      const res = await fetch(`/api/profile?email=${encodeURIComponent(cleanEmail)}`);
+      const json = await res.json();
+      if (json.success && json.profile) {
+        localStorage.setItem('gs_profile', JSON.stringify(json.profile));
+      } else {
+        localStorage.setItem('gs_profile', JSON.stringify({ name: '', gmail: cleanEmail, phone: '' }));
+      }
+      loginWithEmail(cleanEmail);
+      setEmail('');
+      triggerConfetti();
+      router.push('/profile');
+    } catch {
+      setEmailError('Could not load profile. Please try again.');
+    } finally {
+      setIsEmailLoading(false);
+    }
   };
 
   const handlePasswordSubmit = (e: React.FormEvent) => {
@@ -50,7 +82,7 @@ export function InvestorLoginModal() {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="relative w-full max-w-md rounded-3xl bg-dark-card border border-gold-500/40 shadow-2xl p-6 sm:p-7 overflow-hidden">
+      <div className="relative w-full max-w-md rounded-3xl bg-dark-card border border-gold-500/40 shadow-2xl p-6 sm:p-7 overflow-hidden max-h-[92vh] overflow-y-auto">
         {/* Glow accent */}
         <div className="absolute -top-16 -right-16 w-44 h-44 bg-gold-500/15 rounded-full blur-2xl pointer-events-none"></div>
 
@@ -63,7 +95,7 @@ export function InvestorLoginModal() {
         </button>
 
         {/* Modal Header */}
-        <div className="text-center space-y-2 mb-6">
+        <div className="text-center space-y-2 mb-5">
           <div className="w-12 h-12 rounded-2xl bg-gold-500/10 border border-gold-500/30 flex items-center justify-center text-gold-400 mx-auto shadow-gold-subtle">
             <ShieldCheck className="w-6 h-6" />
           </div>
@@ -76,7 +108,7 @@ export function InvestorLoginModal() {
         </div>
 
         {/* Instant Free Terminal Access */}
-        <div className="space-y-4">
+        <div className="space-y-3.5">
           <button
             onClick={handleEnterTerminal}
             type="button"
@@ -87,11 +119,39 @@ export function InvestorLoginModal() {
             <ArrowRight className="w-4 h-4" />
           </button>
 
+          {/* User Login by Email Only (No Password) */}
+          <form onSubmit={handleEmailSubmit} className="p-3.5 rounded-2xl bg-dark-elevated/70 border border-gold-500/25 space-y-2.5">
+            <div className="flex items-center gap-2 text-gold-300 font-semibold text-xs">
+              <Mail className="w-3.5 h-3.5 text-gold-400" />
+              <span>User Profile Login (Email Only — No Password)</span>
+            </div>
+            <div className="flex gap-2">
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  if (emailError) setEmailError('');
+                }}
+                placeholder="yourname@gmail.com"
+                className="flex-1 min-w-0 px-3 py-2 rounded-xl bg-dark-base border border-dark-border text-xs text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-gold-500"
+              />
+              <button
+                type="submit"
+                disabled={isEmailLoading}
+                className="px-3.5 py-2 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-500/40 text-emerald-300 text-xs font-bold transition-colors disabled:opacity-50 shrink-0"
+              >
+                {isEmailLoading ? '...' : 'Sign In'}
+              </button>
+            </div>
+            {emailError && <p className="text-[11px] text-fintech-red font-mono">{emailError}</p>}
+          </form>
+
           {/* Investor / Admin Password Login */}
           <form onSubmit={handlePasswordSubmit} className="p-3.5 rounded-2xl bg-dark-elevated/70 border border-dark-border space-y-2.5">
             <div className="flex items-center gap-2 text-slate-300 font-semibold text-xs">
               <KeyRound className="w-3.5 h-3.5 text-gold-400" />
-              <span>Investor / Admin Access</span>
+              <span>Admin / Investor Access</span>
             </div>
             <div className="flex gap-2">
               <input
@@ -102,11 +162,11 @@ export function InvestorLoginModal() {
                   if (error) setError('');
                 }}
                 placeholder="Enter access password..."
-                className="flex-1 px-3 py-2 rounded-xl bg-dark-base border border-dark-border text-xs text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-gold-500"
+                className="flex-1 min-w-0 px-3 py-2 rounded-xl bg-dark-base border border-dark-border text-xs text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-gold-500"
               />
               <button
                 type="submit"
-                className="px-3.5 py-2 rounded-xl bg-gold-500/20 hover:bg-gold-500/30 border border-gold-500/40 text-gold-300 text-xs font-bold transition-colors"
+                className="px-3.5 py-2 rounded-xl bg-gold-500/20 hover:bg-gold-500/30 border border-gold-500/40 text-gold-300 text-xs font-bold transition-colors shrink-0"
               >
                 Unlock
               </button>

@@ -8,7 +8,7 @@ import { Footer } from '@/components/Footer';
 import { StickyMobileBar } from '@/components/StickyMobileBar';
 import { SettingsModal } from '@/components/SettingsModal';
 import { InvestorLoginModal } from '@/components/InvestorLoginModal';
-import { User, Mail, Phone, CheckCircle2, ShieldCheck, ArrowRight, Home, Activity } from 'lucide-react';
+import { User, Mail, Phone, CheckCircle2, ShieldCheck, ArrowRight, Home, Activity, LogOut } from 'lucide-react';
 
 interface UserProfile {
   name: string;
@@ -20,33 +20,64 @@ interface UserProfile {
 const PROFILE_STORAGE_KEY = 'gs_profile';
 
 export default function ProfilePage() {
-  const { role, isAdmin, isInvestor, setIsLoginModalOpen, logout } = useAuth();
+  const { role, userEmail, isAdmin, isInvestor, loginWithEmail, setIsLoginModalOpen, logout } = useAuth();
   const [name, setName] = useState('');
   const [gmail, setGmail] = useState('');
   const [phone, setPhone] = useState('');
   const [error, setError] = useState('');
   const [saved, setSaved] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem(PROFILE_STORAGE_KEY);
-      if (raw) {
-        const parsed = JSON.parse(raw) as UserProfile;
-        setName(parsed.name ?? '');
-        setGmail(parsed.gmail ?? '');
-        setPhone(parsed.phone ?? '');
-      }
-    } catch {
-      // ignore invalid storage
-    }
-  }, []);
+    let active = true;
 
-  const handleSave = (e: React.FormEvent) => {
+    async function loadProfile() {
+      // 1. Hydrate from localStorage first
+      try {
+        const raw = localStorage.getItem(PROFILE_STORAGE_KEY);
+        if (raw) {
+          const parsed = JSON.parse(raw) as UserProfile;
+          if (active) {
+            setName(parsed.name ?? '');
+            setGmail(parsed.gmail ?? userEmail ?? '');
+            setPhone(parsed.phone ?? '');
+          }
+        } else if (userEmail && active) {
+          setGmail(userEmail);
+        }
+      } catch {
+        // ignore invalid storage
+      }
+
+      // 2. If logged in with an email, fetch latest profile from Redis
+      const targetEmail = (userEmail || '').trim().toLowerCase();
+      if (!targetEmail) return;
+      try {
+        const res = await fetch(`/api/profile?email=${encodeURIComponent(targetEmail)}`);
+        const json = await res.json();
+        if (active && json.success && json.profile) {
+          setName(json.profile.name ?? '');
+          setGmail(json.profile.gmail ?? targetEmail);
+          setPhone(json.profile.phone ?? '');
+          localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(json.profile));
+        }
+      } catch {
+        // fallback to localStorage
+      }
+    }
+
+    loadProfile();
+    return () => {
+      active = false;
+    };
+  }, [userEmail]);
+
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setSaved(false);
 
-    const trimmedGmail = gmail.trim();
+    const trimmedGmail = gmail.trim().toLowerCase();
     const trimmedPhone = phone.trim();
 
     if (!trimmedGmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmedGmail)) {
@@ -58,21 +89,46 @@ export default function ProfilePage() {
       return;
     }
 
-    const profile: UserProfile = {
-      name: name.trim(),
-      gmail: trimmedGmail,
-      phone: trimmedPhone,
-      updatedAt: new Date().toISOString(),
-    };
-    localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(profile));
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+    setIsSaving(true);
+    try {
+      const res = await fetch('/api/profile', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: name.trim(),
+          gmail: trimmedGmail,
+          phone: trimmedPhone,
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok || !json.success) {
+        setError(json.error || 'Failed to save profile.');
+        return;
+      }
+
+      localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(json.profile));
+      loginWithEmail(trimmedGmail);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 3500);
+    } catch {
+      setError('Network error while saving profile.');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  const roleLabel = isAdmin ? 'Admin' : isInvestor ? 'Investor' : 'Guest';
+  const handleSwitchUser = () => {
+    logout();
+    setName('');
+    setGmail('');
+    setPhone('');
+    setIsLoginModalOpen(true);
+  };
+
+  const roleLabel = isAdmin ? 'Admin' : isInvestor ? 'Investor' : userEmail ? 'User' : 'Guest';
 
   return (
-    <div className="min-h-screen bg-dark-base fintech-grid-bg relative flex flex-col">
+    <div className="min-h-screen bg-dark-base fintech-grid-bg relative flex flex-col page-enter pb-20 sm:pb-0">
       <Header />
 
       <main className="flex-1 max-w-3xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-6">
@@ -84,7 +140,9 @@ export default function ProfilePage() {
               <span>Trader Profile</span>
             </h1>
             <p className="text-xs sm:text-sm text-slate-400 mt-1">
-              Save your Gmail and phone number for demo requests, investor credentials, and account alerts.
+              {userEmail
+                ? `Signed in as ${userEmail} — your profile is synced across sessions.`
+                : 'Save your Gmail and phone number, then sign in anytime using just your email (no password).'}
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -110,7 +168,7 @@ export default function ProfilePage() {
           onSubmit={handleSave}
           className="p-6 sm:p-8 rounded-3xl bg-dark-card border border-gold-500/30 shadow-2xl space-y-5"
         >
-          <div className="flex items-center justify-between border-b border-dark-border pb-4">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-dark-border pb-4">
             <div className="flex items-center gap-2 text-sm font-bold text-white">
               <ShieldCheck className="w-4 h-4 text-emerald-400" />
               <span>Contact Information</span>
@@ -187,35 +245,37 @@ export default function ProfilePage() {
           {saved && (
             <div className="p-3 rounded-xl bg-emerald-950/40 border border-emerald-500/40 text-emerald-300 text-xs font-mono flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-              <span>Profile saved! Your Gmail and phone number are stored and will auto-fill demo requests.</span>
+              <span>Profile saved! Next time you can log in using just your Gmail ID (no password).</span>
             </div>
           )}
 
           <div className="pt-2 flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <button
                 type="button"
                 onClick={() => setIsLoginModalOpen(true)}
                 className="px-4 py-2.5 rounded-xl bg-dark-elevated hover:bg-dark-hover border border-dark-border text-slate-300 text-xs font-mono transition-colors"
               >
-                {role === 'admin' || role === 'investor' ? 'Switch Role' : 'Investor / Admin Login'}
+                {userEmail ? 'Switch Email / Role' : 'Login with Email / Password'}
               </button>
-              {role && role !== 'guest' && (
+              {(userEmail || (role && role !== 'guest')) && (
                 <button
                   type="button"
-                  onClick={logout}
-                  className="px-3 py-2.5 rounded-xl bg-red-950/30 hover:bg-red-900/40 border border-red-500/30 text-red-300 text-xs font-mono transition-colors"
+                  onClick={handleSwitchUser}
+                  className="px-3 py-2.5 rounded-xl bg-red-950/30 hover:bg-red-900/40 border border-red-500/30 text-red-300 text-xs font-mono transition-colors flex items-center gap-1.5"
                 >
-                  Sign Out
+                  <LogOut className="w-3.5 h-3.5" />
+                  <span>Sign Out</span>
                 </button>
               )}
             </div>
 
             <button
               type="submit"
-              className="px-6 py-3 rounded-xl bg-gradient-to-r from-gold-500 via-gold-400 to-amber-500 hover:from-gold-400 hover:to-amber-400 text-dark-base font-extrabold text-xs uppercase tracking-wider flex items-center gap-2 shadow-gold-subtle transition-all"
+              disabled={isSaving}
+              className="px-6 py-3 rounded-xl bg-gradient-to-r from-gold-500 via-gold-400 to-amber-500 hover:from-gold-400 hover:to-amber-400 text-dark-base font-extrabold text-xs uppercase tracking-wider flex items-center gap-2 shadow-gold-subtle transition-all disabled:opacity-50 btn-sheen"
             >
-              <span>Save Profile</span>
+              <span>{isSaving ? 'Saving...' : 'Save Profile'}</span>
               <ArrowRight className="w-4 h-4" />
             </button>
           </div>

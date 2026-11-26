@@ -11,10 +11,12 @@ export type UserRole = 'admin' | 'investor' | 'guest' | null;
 
 interface AuthContextType {
   role: UserRole;
+  userEmail: string;
   isLoggedIn: boolean;
   isAdmin: boolean;
   isInvestor: boolean;
   loginAsGuest: () => void;
+  loginWithEmail: (email: string) => void;
   loginWithPassword: (password: string) => 'admin' | 'investor' | 'invalid';
   logout: () => void;
   isLoginModalOpen: boolean;
@@ -32,29 +34,50 @@ const INVEST_PASS = process.env.NEXT_PUBLIC_INVESTOR_PASSWORD ?? 'goldstar2026';
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [role, setRole] = useState<UserRole>(null);
+  const [userEmail, setUserEmail] = useState<string>('');
   const [isLoginModalOpen, setIsLoginModalOpen] = useState<boolean>(false);
   const [investorId, setInvestorId] = useState<string>('');
 
   useEffect(() => {
-    const storedRole = localStorage.getItem('gs_role') as UserRole | null;
-    const storedId   = localStorage.getItem('gs_investor_id') ?? '';
+    const storedRole  = localStorage.getItem('gs_role') as UserRole | null;
+    const storedId    = localStorage.getItem('gs_investor_id') ?? '';
+    const storedEmail = localStorage.getItem('gs_user_email') ?? '';
     if (storedRole === 'admin' || storedRole === 'investor' || storedRole === 'guest') {
       setRole(storedRole);
       setInvestorId(storedId);
     }
+    if (storedEmail) {
+      setUserEmail(storedEmail);
+    }
   }, []);
 
-  const persist = (r: UserRole, id: string) => {
+  const persist = (r: UserRole, id: string, email?: string) => {
     setRole(r);
     setInvestorId(id);
     if (r) {
       localStorage.setItem('gs_role', r);
       localStorage.setItem('gs_investor_id', id);
     }
+    if (email !== undefined) {
+      setUserEmail(email);
+      if (email) {
+        localStorage.setItem('gs_user_email', email);
+      } else {
+        localStorage.removeItem('gs_user_email');
+      }
+    }
     setIsLoginModalOpen(false);
   };
 
   const loginAsGuest = () => persist('guest', 'GUEST');
+
+  const loginWithEmail = (email: string) => {
+    const clean = email.trim().toLowerCase();
+    if (!clean) return;
+    const nextRole: UserRole = role === 'admin' || role === 'investor' ? role : 'guest';
+    const nextId = investorId || clean;
+    persist(nextRole, nextId, clean);
+  };
 
   const loginWithPassword = (password: string): 'admin' | 'investor' | 'invalid' => {
     const p = password.trim();
@@ -72,8 +95,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = () => {
     setRole(null);
     setInvestorId('');
+    setUserEmail('');
     localStorage.removeItem('gs_role');
     localStorage.removeItem('gs_investor_id');
+    localStorage.removeItem('gs_user_email');
+    localStorage.removeItem('gs_profile');
     // legacy keys cleanup
     localStorage.removeItem('gold_star_auth');
     localStorage.removeItem('gold_star_investor_id');
@@ -83,10 +109,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     <AuthContext.Provider
       value={{
         role,
+        userEmail,
         isLoggedIn: role !== null,
         isAdmin: role === 'admin',
         isInvestor: role === 'investor' || role === 'admin',
         loginAsGuest,
+        loginWithEmail,
         loginWithPassword,
         logout,
         isLoginModalOpen,
