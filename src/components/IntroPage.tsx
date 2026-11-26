@@ -1,6 +1,8 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useTradingData } from '@/context/TradingDataContext';
 import { useLanguage } from '@/context/LanguageContext';
@@ -23,6 +25,7 @@ import {
   Server,
   Layers,
   Award,
+  User,
 } from 'lucide-react';
 import { EquityChart } from './EquityChart';
 import { LiveTradesTable } from './LiveTradesTable';
@@ -30,10 +33,16 @@ import { ConversionSection } from './ConversionSection';
 import { Footer } from './Footer';
 
 export function IntroPage() {
+  const router = useRouter();
   const { loginAsGuest, setIsLoginModalOpen } = useAuth();
   const { data } = useTradingData();
   const { t } = useLanguage();
   const { metrics, botConfig } = data;
+
+  const handleGuestTerminal = () => {
+    loginAsGuest();
+    router.push('/terminal');
+  };
 
   const scrollToSection = (id: string) => {
     const el = document.getElementById(id);
@@ -43,26 +52,41 @@ export function IntroPage() {
   };
 
   return (
-    <div className="min-h-screen bg-dark-base fintech-grid-bg relative text-slate-100 flex flex-col overflow-x-hidden">
+    <div className="min-h-screen bg-dark-base fintech-grid-bg relative text-slate-100 flex flex-col overflow-x-hidden pb-20 sm:pb-0 page-enter">
       {/* 1. Live Gold Ribbon Stream Bar */}
-      <div className="w-full bg-gradient-to-r from-dark-card via-gold-500/15 to-dark-card border-b border-gold-500/20 py-2 px-4 overflow-hidden sticky top-0 z-40 backdrop-blur-md">
-        <div className="max-w-7xl mx-auto flex items-center justify-between text-xs font-mono">
-          <div className="flex items-center gap-2 text-gold-400">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
-            <span className="font-bold">LIVE MT5 FEED:</span>
-            <span className="text-white font-semibold">XAUUSD Spot Gold @ 2646.20</span>
-            <span className="text-emerald-400 font-bold hidden sm:inline">(▲ +0.84% Intraday)</span>
+      <div className="w-full bg-gradient-to-r from-dark-card via-gold-500/15 to-dark-card border-b border-gold-500/20 py-2 px-3 sm:px-4 overflow-hidden sticky top-0 z-40 backdrop-blur-md">
+        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2 text-xs font-mono">
+          <div className="flex items-center gap-2 text-gold-400 min-w-0">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping shrink-0"></span>
+            <span className="font-bold shrink-0">LIVE MT5:</span>
+            <span className="text-white font-semibold truncate">XAUUSD Gold</span>
+            <span className="text-emerald-400 font-bold hidden sm:inline">({botConfig.status})</span>
           </div>
-          <div className="flex items-center gap-3">
-            <span className="text-slate-400 hidden md:inline">
+          <div className="flex items-center gap-2 sm:gap-3">
+            <span className="text-slate-400 hidden lg:inline">
               Broker: <strong className="text-slate-200">{botConfig.broker}</strong>
             </span>
+            <Link
+              href="/terminal"
+              className="px-2.5 py-1 rounded-lg bg-dark-elevated hover:bg-dark-hover border border-gold-500/30 text-gold-300 font-bold text-[11px] uppercase tracking-wider transition-all flex items-center gap-1"
+            >
+              <Activity className="w-3 h-3" />
+              <span>Terminal</span>
+            </Link>
+            <Link
+              href="/profile"
+              className="px-2.5 py-1 rounded-lg bg-dark-elevated hover:bg-dark-hover border border-dark-border text-slate-200 font-bold text-[11px] uppercase tracking-wider transition-all flex items-center gap-1"
+            >
+              <User className="w-3 h-3 text-gold-400" />
+              <span className="hidden xs:inline sm:inline">Profile</span>
+            </Link>
             <button
               onClick={() => setIsLoginModalOpen(true)}
               className="px-2.5 py-1 rounded-lg bg-gold-500 hover:bg-gold-400 text-dark-base font-bold text-[11px] uppercase tracking-wider transition-all shadow-gold-subtle flex items-center gap-1"
             >
               <Lock className="w-3 h-3" />
-              <span>Investor Login</span>
+              <span className="hidden sm:inline">Investor Login</span>
+              <span className="sm:hidden">Login</span>
             </button>
           </div>
         </div>
@@ -109,7 +133,7 @@ export function IntroPage() {
           {/* Unlock Live Terminal Button */}
           <button
             onClick={() => setIsLoginModalOpen(true)}
-            className="px-6 py-3.5 rounded-2xl bg-gradient-to-r from-gold-500 via-gold-400 to-amber-500 hover:from-gold-400 hover:to-amber-400 text-dark-base font-extrabold text-sm uppercase tracking-wider flex items-center gap-2.5 shadow-gold-glow hover:scale-105 transition-all duration-200"
+            className="w-full sm:w-auto justify-center px-6 py-3.5 rounded-2xl bg-gradient-to-r from-gold-500 via-gold-400 to-amber-500 hover:from-gold-400 hover:to-amber-400 text-dark-base font-extrabold text-sm uppercase tracking-wider flex items-center gap-2.5 shadow-gold-glow hover:scale-[1.02] transition-all duration-200 btn-sheen"
           >
             <Lock className="w-4 h-4" />
             <span>Unlock Live Terminal</span>
@@ -118,8 +142,8 @@ export function IntroPage() {
 
           {/* 1-Click Instant Guest Pass */}
           <button
-            onClick={loginAsGuest}
-            className="px-6 py-3.5 rounded-2xl bg-dark-card hover:bg-dark-elevated border border-gold-500/30 hover:border-gold-400 text-gold-300 hover:text-white font-bold text-sm flex items-center gap-2 transition-all shadow-md"
+            onClick={handleGuestTerminal}
+            className="w-full sm:w-auto justify-center px-6 py-3.5 rounded-2xl bg-dark-card hover:bg-dark-elevated border border-gold-500/30 hover:border-gold-400 text-gold-300 hover:text-white font-bold text-sm flex items-center gap-2 transition-all shadow-md"
           >
             <Sparkles className="w-4 h-4 text-gold-400" />
             <span>1-Click Guest Pass</span>
@@ -130,7 +154,7 @@ export function IntroPage() {
             href={botConfig.whatsappUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="px-5 py-3.5 rounded-2xl bg-[#25D366]/15 hover:bg-[#25D366]/25 border border-[#25D366]/40 text-[#25D366] hover:text-white font-bold text-sm flex items-center gap-2 transition-all shadow-md"
+            className="w-full sm:w-auto justify-center px-5 py-3.5 rounded-2xl bg-[#25D366]/15 hover:bg-[#25D366]/25 border border-[#25D366]/40 text-[#25D366] hover:text-white font-bold text-sm flex items-center gap-2 transition-all shadow-md"
           >
             <MessageCircle className="w-4 h-4" />
             <span>Request Demo on WhatsApp</span>

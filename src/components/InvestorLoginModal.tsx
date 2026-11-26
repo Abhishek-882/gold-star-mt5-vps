@@ -1,12 +1,14 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useTradingData } from '@/context/TradingDataContext';
 import { ShieldCheck, X, ArrowRight, MessageCircle, Lock, Eye, KeyRound } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 export function InvestorLoginModal() {
+  const router = useRouter();
   const { isLoginModalOpen, setIsLoginModalOpen, loginAsGuest, loginWithPassword } = useAuth();
   const { data } = useTradingData();
   const [password, setPassword] = useState('');
@@ -26,6 +28,7 @@ export function InvestorLoginModal() {
   const handleEnterTerminal = () => {
     triggerConfetti();
     loginAsGuest();
+    router.push('/terminal');
   };
 
   const handlePasswordSubmit = (e: React.FormEvent) => {
@@ -38,6 +41,7 @@ export function InvestorLoginModal() {
     }
     setPassword('');
     triggerConfetti();
+    router.push('/terminal');
   };
 
   const cleanNumber = data.botConfig.whatsappNumber ? data.botConfig.whatsappNumber.replace(/[^0-9]/g, '') : '';

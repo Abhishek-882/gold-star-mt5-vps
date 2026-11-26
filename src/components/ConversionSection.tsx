@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTradingData } from '@/context/TradingDataContext';
 import { useLanguage } from '@/context/LanguageContext';
 import {
@@ -27,6 +27,20 @@ export function ConversionSection() {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [capital, setCapital] = useState('$1,000 - $5,000');
   const [isSubmitted, setIsSubmitted] = useState(false);
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('gs_profile');
+      if (raw) {
+        const parsed = JSON.parse(raw) as { name?: string; phone?: string };
+        if (parsed.name && !fullName) setFullName(parsed.name);
+        if (parsed.phone && !phoneNumber) setPhoneNumber(parsed.phone);
+      }
+    } catch {
+      // ignore
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // FAQ Accordion State
   const [openFaq, setOpenFaq] = useState<number | null>(0);

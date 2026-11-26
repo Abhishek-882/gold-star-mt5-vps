@@ -51,7 +51,7 @@ export function KpiCards() {
   return (
     <section className="space-y-4">
       {/* Primary Balance & Equity Live Telemetry Bar */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 rounded-2xl bg-gradient-to-r from-dark-card via-dark-elevated to-dark-card border border-gold-500/20 shadow-gold-subtle">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 rounded-2xl bg-gradient-to-r from-dark-card via-dark-elevated to-dark-card border border-gold-500/20 shadow-gold-subtle fintech-sweep">
         {/* Account Balance */}
         <div className="flex items-center gap-3.5 px-3 py-2">
           <div className="w-10 h-10 rounded-xl bg-gold-500/10 border border-gold-500/30 flex items-center justify-center text-gold-400 shrink-0">
