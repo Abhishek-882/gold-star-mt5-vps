@@ -84,7 +84,6 @@ export async function POST(req: NextRequest) {
 
     const payload = {
       temperature: 0.3,
-      max_tokens: 700,
       stream: false,
       messages: [
         { role: 'system', content: buildSystemPrompt(liveSummary) },
