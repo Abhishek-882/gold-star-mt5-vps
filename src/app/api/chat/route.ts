@@ -8,7 +8,7 @@ interface ChatMessage {
 
 const DEFAULT_BASE_URL = 'https://motapis.com/v1';
 // Ordered fastest→slowest; first model with quota wins.
-// MOTAPIS_MODEL env var overrides the primary (slot 0) only.
+// MOTAPIS_MODELnew env var overrides the primary (slot 0) only.
 const DEFAULT_MODEL = 'glm-5.3-flash';
 const FALLBACK_MODELS = ['deepseek-v4-flash', 'deepseek-v4.1-flash-1017', 'qwen3.8-max'];
 
@@ -36,12 +36,12 @@ ${liveSummary}`;
 
 export async function POST(req: NextRequest) {
   try {
-    const apiKey = process.env.MOTAPIS_API_KEY?.trim();
-    const baseUrl = (process.env.MOTAPIS_BASE_URL || DEFAULT_BASE_URL).replace(/\/+$/, '');
+    const apiKey = process.env.MOTAPIS_API_KEYnew?.trim();
+    const baseUrl = (process.env.MOTAPIS_BASE_URLnew || DEFAULT_BASE_URL).replace(/\/+$/, '');
 
     if (!apiKey) {
       return NextResponse.json(
-        { success: false, error: 'MOTAPIS_API_KEY is not configured on the server.' },
+        { success: false, error: 'MOTAPIS_API_KEYnew is not configured on the server.' },
         { status: 500 }
       );
     }
@@ -78,7 +78,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Build ordered model list: primary first, then fallbacks
-    const primaryModel = process.env.MOTAPIS_MODEL?.trim() || DEFAULT_MODEL;
+    const primaryModel = process.env.MOTAPIS_MODELnew?.trim() || DEFAULT_MODEL;
     const modelsToTry = [primaryModel, ...FALLBACK_MODELS.filter((m) => m !== primaryModel)];
 
     const payload = {
