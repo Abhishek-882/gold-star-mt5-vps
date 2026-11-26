@@ -63,20 +63,31 @@ export function ConversionSection() {
 
     setIsSubmitted(true);
 
+    let savedGmail = '';
+    try {
+      const raw = localStorage.getItem('gs_profile');
+      if (raw) savedGmail = (JSON.parse(raw) as { gmail?: string }).gmail ?? '';
+    } catch {
+      // ignore
+    }
+
     // Build pre-filled WhatsApp message
     const msg = `Hi Gold Star Team! I would like to request free demo investor access for my MT5 account.%0A%0A*Name:* ${encodeURIComponent(
       fullName
     )}%0A*Phone:* ${encodeURIComponent(
       phoneNumber
-    )}%0A*Planned Capital:* ${encodeURIComponent(capital)}%0A%0APlease share the investor credentials and setup guide.`;
+    )}${savedGmail ? `%0A*Gmail:* ${encodeURIComponent(savedGmail)}` : ''}%0A*Planned Capital:* ${encodeURIComponent(capital)}%0A%0APlease share the investor credentials and setup guide.`;
 
-    // Extract clean phone number without spaces
-    const cleanNumber = botConfig.whatsappNumber.replace(/[^0-9]/g, '');
+    // Extract clean phone number, defaulting to Indian number +91 9963303115
+    const rawDigits = (botConfig.whatsappNumber || '').replace(/[^0-9]/g, '');
+    const cleanNumber = rawDigits.length >= 10 ? rawDigits : '919963303115';
     const waUrl = `https://wa.me/${cleanNumber}?text=${msg}`;
 
-    setTimeout(() => {
-      window.open(waUrl, '_blank');
-    }, 600);
+    // Open synchronously so mobile browsers don't block the popup
+    const win = window.open(waUrl, '_blank', 'noopener,noreferrer');
+    if (!win) {
+      window.location.href = waUrl;
+    }
   };
 
   const faqs = [

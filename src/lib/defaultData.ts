@@ -13,8 +13,8 @@ export const initialBotConfig: BotConfig = {
   isLiveConnected: false,
   connectionMode: "bridge",
   telegramUrl: "https://t.me/YourUsername",
-  whatsappUrl: "https://wa.me/?text=Hi,%20I%20want%20Gold%20Star%20Bot%20details",
-  whatsappNumber: "",
+  whatsappUrl: "https://wa.me/919963303115?text=Hi%2C%20I%20would%20like%20to%20request%20Gold%20Star%20MT5%20Bot%20demo%20%26%20investor%20access.",
+  whatsappNumber: "+919963303115",
   instagramUrl: "https://instagram.com/YourPage",
 };
 

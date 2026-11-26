@@ -54,7 +54,11 @@ export function StickyMobileBar() {
         </Link>
 
         <a
-          href={botConfig.whatsappUrl}
+          href={
+            (botConfig.whatsappNumber || '').replace(/[^0-9]/g, '').length >= 10
+              ? `https://wa.me/${botConfig.whatsappNumber.replace(/[^0-9]/g, '')}?text=Hi%2C%20I%20would%20like%20to%20request%20Gold%20Star%20MT5%20Bot%20demo%20access.`
+              : 'https://wa.me/919963303115?text=Hi%2C%20I%20would%20like%20to%20request%20Gold%20Star%20MT5%20Bot%20demo%20access.'
+          }
           target="_blank"
           rel="noopener noreferrer"
           className="flex flex-col items-center justify-center gap-0.5 py-2 px-1 rounded-xl bg-[#25D366]/20 hover:bg-[#25D366]/30 border border-[#25D366]/40 text-[#25D366] text-[11px] font-bold transition-all active:scale-95"

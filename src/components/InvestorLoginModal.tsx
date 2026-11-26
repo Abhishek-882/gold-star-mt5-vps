@@ -44,10 +44,9 @@ export function InvestorLoginModal() {
     router.push('/terminal');
   };
 
-  const cleanNumber = data.botConfig.whatsappNumber ? data.botConfig.whatsappNumber.replace(/[^0-9]/g, '') : '';
-  const waUrl = cleanNumber
-    ? `https://wa.me/${cleanNumber}?text=Hi%2C%20I%20would%20like%20to%20request%20private%20MT5%20investor%20read-only%20credentials%20to%20audit%20Gold%20Star%20Bot.`
-    : data.botConfig.whatsappUrl;
+  const rawDigits = data.botConfig.whatsappNumber ? data.botConfig.whatsappNumber.replace(/[^0-9]/g, '') : '';
+  const cleanNumber = rawDigits.length >= 10 ? rawDigits : '919963303115';
+  const waUrl = `https://wa.me/${cleanNumber}?text=Hi%2C%20I%20would%20like%20to%20request%20private%20MT5%20investor%20read-only%20credentials%20to%20audit%20Gold%20Star%20Bot.`;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">

@@ -190,6 +190,14 @@ export class MT5Service {
       data.closedTrades = data.closedTrades.map(normalizeClosedTrade);
     }
 
+    if (!data.botConfig.whatsappNumber) {
+      data.botConfig.whatsappNumber = '+919963303115';
+    }
+    if (!data.botConfig.whatsappUrl || data.botConfig.whatsappUrl.startsWith('https://wa.me/?')) {
+      data.botConfig.whatsappUrl =
+        'https://wa.me/919963303115?text=Hi%2C%20I%20would%20like%20to%20request%20Gold%20Star%20MT5%20Bot%20demo%20%26%20investor%20access.';
+    }
+
     return data;
   }
 
