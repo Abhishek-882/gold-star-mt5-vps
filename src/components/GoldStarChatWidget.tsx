@@ -155,7 +155,7 @@ export function GoldStarChatWidget() {
           </div>
 
           {/* Quick Prompts */}
-          <div className="px-3 py-2 border-t border-dark-border/60 flex items-center gap-1.5 overflow-x-auto bg-dark-base/50">
+          <div className="px-3 py-2 border-t border-dark-border/60 flex flex-wrap items-center gap-1.5 bg-dark-base/50">
             {QUICK_PROMPTS.map((q) => (
               <button
                 key={q}
