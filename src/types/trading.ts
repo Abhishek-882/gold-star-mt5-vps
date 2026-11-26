@@ -26,6 +26,8 @@ export interface HistoricalTrade {
   profit: number;
   pips: number;
   duration: string;
+  swap?: number;
+  commission?: number;
 }
 
 export interface AccountMetrics {
@@ -51,6 +53,7 @@ export interface AccountMetrics {
   maxDrawdownUsd: number;
   sharpeRatio: number;
   freeMargin: number;
+  margin: number;
   marginLevel: number;
 }
 

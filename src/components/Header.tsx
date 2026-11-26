@@ -9,7 +9,7 @@ import { Star, ShieldCheck, RefreshCw, Settings, Globe, Radio, Lock } from 'luci
 export function Header() {
   const { data, refreshData, isRefreshing, lastSyncFormatted, setIsSettingsOpen } = useTradingData();
   const { language, toggleLanguage, t } = useLanguage();
-  const { logout } = useAuth();
+  const { logout, isAdmin } = useAuth();
 
   const isLive = data.botConfig.isLiveConnected && data.botConfig.status === 'LIVE';
 
@@ -91,14 +91,16 @@ export function Header() {
             <span className="font-semibold">{language === 'en' ? 'తెలుగు' : 'English'}</span>
           </button>
 
-          {/* Settings / Connect MT5 */}
-          <button
-            onClick={() => setIsSettingsOpen(true)}
-            className="p-2 rounded-lg bg-dark-elevated hover:bg-dark-hover border border-dark-border text-slate-300 hover:text-gold-400 transition-colors"
-            title={t.configSettings}
-          >
-            <Settings className="w-4 h-4" />
-          </button>
+          {/* Settings — admin only */}
+          {isAdmin && (
+            <button
+              onClick={() => setIsSettingsOpen(true)}
+              className="p-2 rounded-lg bg-dark-elevated hover:bg-dark-hover border border-dark-border text-slate-300 hover:text-gold-400 transition-colors"
+              title={t.configSettings}
+            >
+              <Settings className="w-4 h-4" />
+            </button>
+          )}
 
           {/* Exit / Return to Intro Landing Page */}
           <button

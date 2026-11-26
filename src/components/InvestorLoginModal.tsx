@@ -1,25 +1,43 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useTradingData } from '@/context/TradingDataContext';
-import { ShieldCheck, X, ArrowRight, MessageCircle, Sparkles, Lock, Eye } from 'lucide-react';
+import { ShieldCheck, X, ArrowRight, MessageCircle, Lock, Eye, KeyRound } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 export function InvestorLoginModal() {
-  const { isLoginModalOpen, setIsLoginModalOpen, loginAsGuest } = useAuth();
+  const { isLoginModalOpen, setIsLoginModalOpen, loginAsGuest, loginWithPassword } = useAuth();
   const { data } = useTradingData();
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
 
   if (!isLoginModalOpen) return null;
 
-  const handleEnterTerminal = () => {
+  const triggerConfetti = () => {
     confetti({
       particleCount: 60,
       spread: 60,
       origin: { y: 0.6 },
       colors: ['#FFD700', '#00C087', '#FFFFFF'],
     });
+  };
+
+  const handleEnterTerminal = () => {
+    triggerConfetti();
     loginAsGuest();
+  };
+
+  const handlePasswordSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    const result = loginWithPassword(password);
+    if (result === 'invalid') {
+      setError('Invalid investor or admin password.');
+      return;
+    }
+    setPassword('');
+    triggerConfetti();
   };
 
   const cleanNumber = data.botConfig.whatsappNumber ? data.botConfig.whatsappNumber.replace(/[^0-9]/g, '') : '';
@@ -65,6 +83,33 @@ export function InvestorLoginModal() {
             <span>View Live Terminal (Free Web Access)</span>
             <ArrowRight className="w-4 h-4" />
           </button>
+
+          {/* Investor / Admin Password Login */}
+          <form onSubmit={handlePasswordSubmit} className="p-3.5 rounded-2xl bg-dark-elevated/70 border border-dark-border space-y-2.5">
+            <div className="flex items-center gap-2 text-slate-300 font-semibold text-xs">
+              <KeyRound className="w-3.5 h-3.5 text-gold-400" />
+              <span>Investor / Admin Access</span>
+            </div>
+            <div className="flex gap-2">
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  if (error) setError('');
+                }}
+                placeholder="Enter access password..."
+                className="flex-1 px-3 py-2 rounded-xl bg-dark-base border border-dark-border text-xs text-slate-200 placeholder:text-slate-500 focus:outline-none focus:border-gold-500"
+              />
+              <button
+                type="submit"
+                className="px-3.5 py-2 rounded-xl bg-gold-500/20 hover:bg-gold-500/30 border border-gold-500/40 text-gold-300 text-xs font-bold transition-colors"
+              >
+                Unlock
+              </button>
+            </div>
+            {error && <p className="text-[11px] text-fintech-red font-mono">{error}</p>}
+          </form>
 
           {/* Investor Password Protection Notice */}
           <div className="p-4 rounded-2xl bg-dark-elevated/70 border border-dark-border text-left space-y-2">

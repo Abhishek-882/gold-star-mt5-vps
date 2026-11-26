@@ -42,6 +42,7 @@ export const initialMetrics: AccountMetrics = {
   maxDrawdownUsd: 0.00,
   sharpeRatio: 0.00,
   freeMargin: 0.00,
+  margin: 0.00,
   marginLevel: 0.00,
 };
 

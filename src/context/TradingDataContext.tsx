@@ -79,11 +79,19 @@ export function TradingDataProvider({ children }: { children: React.ReactNode })
     return () => clearInterval(ticker);
   }, [data?.botConfig?.lastUpdated, calculateLastSync]);
 
+  const adminHeaders = () => {
+    const secret = process.env.NEXT_PUBLIC_ADMIN_PASSWORD ?? '';
+    return {
+      'Content-Type': 'application/json',
+      ...(secret ? { 'Authorization': `Bearer ${secret}` } : {}),
+    };
+  };
+
   const updateConfig = async (partialConfig: Partial<DashboardData['botConfig']>) => {
     try {
       const res = await fetch('/api/mt5/config', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: adminHeaders(),
         body: JSON.stringify(partialConfig),
       });
       if (res.ok) {
@@ -98,7 +106,7 @@ export function TradingDataProvider({ children }: { children: React.ReactNode })
     try {
       await fetch('/api/mt5/config', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: adminHeaders(),
         body: JSON.stringify({ action: 'simulate_disconnect' }),
       });
       await fetchData(true);
@@ -111,7 +119,7 @@ export function TradingDataProvider({ children }: { children: React.ReactNode })
     try {
       await fetch('/api/mt5/config', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: adminHeaders(),
         body: JSON.stringify({ action: 'reset_demo' }),
       });
       await fetchData(true);

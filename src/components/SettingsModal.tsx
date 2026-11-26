@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useTradingData } from '@/context/TradingDataContext';
 import { useLanguage } from '@/context/LanguageContext';
+import { useAuth } from '@/context/AuthContext';
 import {
   X,
   Settings,
@@ -28,6 +29,7 @@ export function SettingsModal() {
     resetToDemo,
   } = useTradingData();
   const { t } = useLanguage();
+  const { isAdmin } = useAuth();
 
   const [activeTab, setActiveTab] = useState<'mt5' | 'social'>('mt5');
 
@@ -42,7 +44,7 @@ export function SettingsModal() {
   const [instagramUrl, setInstagramUrl] = useState(data.botConfig.instagramUrl);
   const [isSaved, setIsSaved] = useState(false);
 
-  if (!isSettingsOpen) return null;
+  if (!isSettingsOpen || !isAdmin) return null;
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
