@@ -238,7 +238,7 @@ export function GoldStarChatWidget() {
         <button
           onClick={() => setIsOpen(true)}
           aria-label="Open Gold Star AI Chat"
-          className="fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-40 flex items-center gap-2 px-4 py-2.5 rounded-full bg-gradient-to-r from-gold-500 via-gold-400 to-amber-500 hover:from-gold-400 hover:to-amber-400 text-dark-base font-extrabold text-xs uppercase tracking-wider shadow-gold-glow transition-all hover:scale-105 btn-sheen"
+          className="fixed bottom-20 right-4 sm:bottom-6 sm:right-6 z-40 flex items-center gap-2 px-4 py-2.5 rounded-full bg-gradient-to-r from-gold-500 via-gold-400 to-amber-500 hover:from-gold-400 hover:to-amber-400 text-dark-base font-extrabold text-xs uppercase tracking-wider shadow-gold-glow transition-all hover:scale-105"
         >
           <Bot className="w-4 h-4" />
           <span>Gold Star AI</span>
