@@ -211,7 +211,7 @@ export function ConversionSection() {
                   onChange={(e) => setCapital(e.target.value)}
                   className="w-full px-3.5 py-2.5 rounded-xl bg-dark-elevated border border-dark-border text-slate-200 focus:outline-none focus:border-gold-500/60 font-sans text-xs transition-colors"
                 >
-                  <option value="$500 - $1,000">$500 - $1,000 (Micro Lot 0.01)</option>
+                  <option value="$100 - $1,000">$100 - $1,000 (Micro Lot 0.01)</option>
                   <option value="$1,000 - $5,000">$1,000 - $5,000 (Recommended Standard)</option>
                   <option value="$5,000 - $25,000">$5,000 - $25,000 (Growth Tier)</option>
                   <option value="$25,000+">$25,000+ (Institutional / Prop Firm)</option>
