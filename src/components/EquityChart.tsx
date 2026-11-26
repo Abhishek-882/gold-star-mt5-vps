@@ -48,6 +48,19 @@ export function EquityChart() {
   const netGain = currentVal - initialVal;
   const netGainPercent = initialVal > 0 ? ((netGain / initialVal) * 100).toFixed(2) : '0.00';
 
+  const minEquity = filteredData.length > 0 ? Math.min(...filteredData.map(d => d.equity)) : 0;
+  const maxEquity = filteredData.length > 0 ? Math.max(...filteredData.map(d => d.equity)) : 0;
+  const pad = Math.max(5, Math.round((maxEquity - minEquity) * 0.2));
+  const yMin = Math.max(0, Math.floor(minEquity - pad));
+  const yMax = Math.ceil(maxEquity + pad);
+
+  const formatXDate = (val: string) => {
+    if (!val || val === 'Live' || val === '00:00' || val === '12:00') return val;
+    const d = new Date(val.includes('T') ? val : val + 'T00:00:00Z');
+    if (isNaN(d.getTime())) return val;
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  };
+
   return (
     <div
       data-aos="fade-up"
@@ -62,7 +75,7 @@ export function EquityChart() {
               {t.equityCurveTitle}
             </h3>
             <span className="text-xs font-mono font-bold text-gold-400 px-2 py-0.5 rounded bg-gold-500/10 border border-gold-500/20">
-              +{netGainPercent}%
+              {netGain >= 0 ? '+' : ''}{netGainPercent}%
             </span>
           </div>
           <p className="text-xs text-slate-400 mt-0.5">
@@ -121,14 +134,15 @@ export function EquityChart() {
                 fontSize={11}
                 tickLine={false}
                 axisLine={{ stroke: '#1C2230' }}
+                tickFormatter={formatXDate}
               />
               <YAxis
                 stroke="#64748B"
                 fontSize={11}
                 tickLine={false}
                 axisLine={{ stroke: '#1C2230' }}
-                tickFormatter={(v) => `$${(v / 1000).toFixed(1)}k`}
-                domain={['dataMin - 300', 'dataMax + 300']}
+                tickFormatter={(v) => (yMax >= 1000 ? `$${(v / 1000).toFixed(1)}k` : `$${Math.round(v)}`)}
+                domain={[yMin, yMax]}
               />
               <Tooltip
                 content={({ active, payload }) => {

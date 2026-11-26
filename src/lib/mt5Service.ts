@@ -79,16 +79,68 @@ function appendEquitySnapshot(snapshots: EquitySnapshot[], equity: number): Equi
   return fresh;
 }
 
-/** Build equityCurve array for the dashboard from stored snapshots */
-function buildEquityCurve(snapshots: EquitySnapshot[]): Array<{ timestamp: string; date: string; equity: number; balance: number; growthPercent: number }> {
+/** Build equityCurve array from historical daily PnL + live equity snapshots */
+function buildEquityCurve(
+  snapshots: EquitySnapshot[],
+  dailyList: DailyPnl[],
+  currentBalance: number,
+  currentEquity: number
+): Array<{ timestamp: string; date: string; equity: number; balance: number; growthPercent: number }> {
+  const points: Array<{ timestamp: string; date: string; equity: number; balance: number; growthPercent: number }> = [];
+
+  if (dailyList && dailyList.length > 0) {
+    const totalRealized = dailyList.reduce((acc, d) => acc + d.profit, 0);
+    const startCap = Number(Math.max(1, currentBalance - totalRealized).toFixed(2));
+    const firstDate = dailyList[0].date;
+
+    points.push({
+      timestamp: firstDate + 'T00:00:00Z',
+      date: firstDate,
+      equity: startCap,
+      balance: startCap,
+      growthPercent: 0,
+    });
+
+    let running = startCap;
+    for (const day of dailyList) {
+      running = Number((running + day.profit).toFixed(2));
+      const growth = startCap > 0 ? Number((((running - startCap) / startCap) * 100).toFixed(2)) : 0;
+      points.push({
+        timestamp: day.date + 'T23:59:00Z',
+        date: day.date,
+        equity: running,
+        balance: running,
+        growthPercent: growth,
+      });
+    }
+
+    // Append latest live snapshot if newer than last trade day
+    const lastHistDate = dailyList[dailyList.length - 1].date;
+    const liveIso = snapshots.length > 0 ? new Date(snapshots[snapshots.length - 1].t).toISOString() : new Date().toISOString();
+    const liveDate = liveIso.split('T')[0];
+    if (liveDate > lastHistDate || Math.abs(currentEquity - running) > 0.01) {
+      const growth = startCap > 0 ? Number((((currentEquity - startCap) / startCap) * 100).toFixed(2)) : 0;
+      points.push({
+        timestamp: liveIso,
+        date: 'Live',
+        equity: currentEquity,
+        balance: currentBalance,
+        growthPercent: growth,
+      });
+    }
+    return points;
+  }
+
+  const base = snapshots[0]?.v || currentEquity || 1;
   return snapshots.map(s => {
     const iso = new Date(s.t).toISOString();
+    const growth = base > 0 ? Number((((s.v - base) / base) * 100).toFixed(2)) : 0;
     return {
       timestamp: iso,
-      date: iso,
+      date: iso.split('T')[0],
       equity: s.v,
-      balance: s.v,      // balance not stored per-snapshot; approximate with equity
-      growthPercent: 0,  // recalculated on client or left as 0
+      balance: s.v,
+      growthPercent: growth,
     };
   });
 }
@@ -198,6 +250,13 @@ export class MT5Service {
         'https://wa.me/919963303115?text=Hi%2C%20I%20would%20like%20to%20request%20Gold%20Star%20MT5%20Bot%20demo%20%26%20investor%20access.';
     }
 
+    data.equityCurve = buildEquityCurve(
+      store.equitySnapshots,
+      data.dailyPnlHistory,
+      data.metrics.balance,
+      data.metrics.equity
+    );
+
     return data;
   }
 
@@ -247,7 +306,6 @@ export class MT5Service {
 
     // Equity curve snapshot
     store.equitySnapshots = appendEquitySnapshot(store.equitySnapshots, equity);
-    data.equityCurve = buildEquityCurve(store.equitySnapshots);
 
     // Open positions
     if (payload.positions) data.openPositions = payload.positions;
@@ -260,6 +318,8 @@ export class MT5Service {
         .sort((a, b) => (a.closeTime > b.closeTime ? -1 : 1)); // newest first
       recalculateStats(data, balance);
     }
+
+    data.equityCurve = buildEquityCurve(store.equitySnapshots, data.dailyPnlHistory, balance, equity);
 
     await saveState(store);
     return data;
