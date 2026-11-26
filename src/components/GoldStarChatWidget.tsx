@@ -57,8 +57,9 @@ export function GoldStarChatWidget() {
           ...prev,
           {
             role: 'assistant',
-            content:
-              `Gold Star AI is temporarily unavailable (${json.error || 'gateway error'}). You can message owner Abhishek directly on WhatsApp: +91 9963303115.`,
+            content: json.blocked
+              ? json.error
+              : `Gold Star AI is temporarily unavailable (${json.error || 'gateway error'}). You can message owner Abhishek directly on WhatsApp: +91 9963303115.`,
           },
         ]);
       }

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { MT5Service } from '@/lib/mt5Service';
+import { getRedisClient } from '@/lib/redis';
 
 interface ChatMessage {
   role: 'user' | 'assistant';
@@ -11,6 +12,67 @@ const DEFAULT_BASE_URL = 'https://api.groq.com/openai/v1';
 // MOTAPIS_MODELnew env var overrides the primary (slot 0) only.
 const DEFAULT_MODEL = 'openai/gpt-oss-20b';
 const FALLBACK_MODELS = ['qwen/qwen3.8-27b', 'openai/gpt-oss-120b'];
+
+const MAX_USER_MESSAGES_24H = 100;
+const BLOCK_DURATION_SECONDS = 24 * 60 * 60; // 24 hours
+
+function getClientIdentifier(req: NextRequest): string {
+  const forwarded = req.headers.get('x-forwarded-for');
+  const ip = forwarded?.split(',')[0]?.trim() || req.headers.get('x-real-ip') || 'anonymous';
+  return ip.replace(/[^a-zA-Z0-9._:-]/g, '_');
+}
+
+/**
+ * Enforces a 100-message allowance per user (by IP) before blocking for 24 hours.
+ * Returns null if allowed, or a 429 NextResponse if blocked.
+ */
+async function checkUserMessageLimit(req: NextRequest): Promise<NextResponse | null> {
+  const redis = getRedisClient();
+  if (!redis) return null;
+
+  const clientId = getClientIdentifier(req);
+  const blockKey = `chat:blocked:${clientId}`;
+  const countKey = `chat:count:${clientId}`;
+
+  try {
+    const isBlocked = await redis.get(blockKey);
+    if (isBlocked) {
+      const ttl = await redis.ttl(blockKey);
+      const hoursLeft = ttl > 0 ? Math.ceil(ttl / 3600) : 24;
+      return NextResponse.json(
+        {
+          success: false,
+          blocked: true,
+          error: `Message limit (100+) reached. You are blocked for ${hoursLeft}h. Please contact Abhishek directly on WhatsApp: +91 9963303115.`,
+        },
+        { status: 429 }
+      );
+    }
+
+    const count = await redis.incr(countKey);
+    if (count === 1) {
+      await redis.expire(countKey, BLOCK_DURATION_SECONDS);
+    }
+
+    if (count > MAX_USER_MESSAGES_24H) {
+      await redis.set(blockKey, '1', { ex: BLOCK_DURATION_SECONDS });
+      await redis.del(countKey);
+      return NextResponse.json(
+        {
+          success: false,
+          blocked: true,
+          error: 'Message limit (100+) reached. You are blocked for 24 hours. Please contact Abhishek directly on WhatsApp: +91 9963303115.',
+        },
+        { status: 429 }
+      );
+    }
+  } catch (err) {
+    // Fail open if Redis errors transiently so legitimate chat is never broken
+    console.error('[chat-rate-limit] Redis error:', err);
+  }
+
+  return null;
+}
 
 function buildSystemPrompt(liveSummary: string): string {
   return `You are **Gold Star AI**, the official AI assistant working strictly under **Gold Star**.
@@ -57,6 +119,9 @@ export async function POST(req: NextRequest) {
     if (recentMessages.length === 0) {
       return NextResponse.json({ success: false, error: 'Message is required.' }, { status: 400 });
     }
+
+    const limitResponse = await checkUserMessageLimit(req);
+    if (limitResponse) return limitResponse;
 
     // Compact live telemetry snapshot (token-efficient, no full 90-day arrays)
     let liveSummary = 'Live feed currently unavailable.';
