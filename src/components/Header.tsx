@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import { useTradingData } from '@/context/TradingDataContext';
 import { useLanguage } from '@/context/LanguageContext';
 import { useAuth } from '@/context/AuthContext';
-import { Star, ShieldCheck, RefreshCw, Settings, Globe, Lock, User, Home, Activity } from 'lucide-react';
+import { Star, ShieldCheck, RefreshCw, Settings, Globe, Lock, User, Home, Activity, Sparkles } from 'lucide-react';
 
 export function Header() {
   const pathname = usePathname();
@@ -137,6 +137,16 @@ export function Header() {
             <User className="w-3.5 h-3.5 text-gold-400" />
             <span className="hidden sm:inline">Profile</span>
           </Link>
+
+          {/* Gold Star AI Assistant Trigger */}
+          <button
+            onClick={() => window.dispatchEvent(new Event('open-goldstar-ai'))}
+            className="px-2 sm:px-2.5 py-1.5 rounded-lg bg-gold-500/15 hover:bg-gold-500/25 border border-gold-500/40 text-gold-300 text-xs font-bold transition-colors flex items-center gap-1"
+            title="Ask Gold Star AI"
+          >
+            <Sparkles className="w-3.5 h-3.5 text-gold-400" />
+            <span className="hidden sm:inline">AI</span>
+          </button>
 
           {/* Settings — admin only */}
           {isAdmin ? (
