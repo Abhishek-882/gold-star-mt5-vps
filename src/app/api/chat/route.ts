@@ -6,11 +6,11 @@ interface ChatMessage {
   content: string;
 }
 
-const DEFAULT_BASE_URL = 'https://motapis.com/v1';
-// Ordered fastest→slowest; first model with quota wins.
+const DEFAULT_BASE_URL = 'https://api.groq.com/openai/v1';
+// Ordered fastest→largest; first key+model that succeeds wins.
 // MOTAPIS_MODELnew env var overrides the primary (slot 0) only.
-const DEFAULT_MODEL = 'glm-5.3-flash';
-const FALLBACK_MODELS = ['deepseek-v4-flash', 'deepseek-v4.1-flash-1017', 'qwen3.8-max'];
+const DEFAULT_MODEL = 'openai/gpt-oss-20b';
+const FALLBACK_MODELS = ['qwen/qwen3.8-27b', 'openai/gpt-oss-120b'];
 
 function buildSystemPrompt(liveSummary: string): string {
   return `You are **Gold Star AI**, the official AI assistant working strictly under **Gold Star**.
@@ -36,10 +36,11 @@ ${liveSummary}`;
 
 export async function POST(req: NextRequest) {
   try {
-    const apiKey = process.env.MOTAPIS_API_KEYnew?.trim();
+    const rawKey = process.env.MOTAPIS_API_KEYnew || '';
+    const apiKeys = rawKey.split(',').map((k) => k.trim()).filter(Boolean);
     const baseUrl = (process.env.MOTAPIS_BASE_URLnew || DEFAULT_BASE_URL).replace(/\/+$/, '');
 
-    if (!apiKey) {
+    if (apiKeys.length === 0) {
       return NextResponse.json(
         { success: false, error: 'MOTAPIS_API_KEYnew is not configured on the server.' },
         { status: 500 }
@@ -83,7 +84,7 @@ export async function POST(req: NextRequest) {
 
     const payload = {
       temperature: 0.3,
-      max_tokens: 450,
+      max_tokens: 700,
       stream: false,
       messages: [
         { role: 'system', content: buildSystemPrompt(liveSummary) },
@@ -91,39 +92,49 @@ export async function POST(req: NextRequest) {
       ],
     };
 
-    let lastError = 'All models exhausted quota.';
+    let lastError = 'All models/keys hit rate or quota limits.';
     for (const candidateModel of modelsToTry) {
-      const upstreamRes = await fetch(`${baseUrl}/chat/completions`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${apiKey}`,
-        },
-        body: JSON.stringify({ ...payload, model: candidateModel }),
-      });
+      for (const apiKey of apiKeys) {
+        const upstreamRes = await fetch(`${baseUrl}/chat/completions`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${apiKey}`,
+          },
+          body: JSON.stringify({ ...payload, model: candidateModel }),
+        });
 
-      const json = await upstreamRes.json();
+        const json = await upstreamRes.json();
+        const errMsg: string = json?.error?.message || '';
+        const errCode: string = json?.error?.code || '';
 
-      // On quota exhaustion try next model silently
-      const errMsg: string = json?.error?.message || '';
-      if (!upstreamRes.ok && errMsg.includes('insufficient_user_quota')) {
-        lastError = `${candidateModel}: quota exhausted`;
-        continue;
+        const isRetryable =
+          upstreamRes.status === 429 ||
+          errCode === 'rate_limit_exceeded' ||
+          errCode === 'model_not_found' ||
+          errMsg.includes('insufficient_user_quota');
+
+        if (!upstreamRes.ok && isRetryable) {
+          lastError = `${candidateModel}: ${errMsg || upstreamRes.status}`;
+          continue;
+        }
+
+        if (!upstreamRes.ok || json.error) {
+          return NextResponse.json(
+            { success: false, error: errMsg || `Upstream error (${upstreamRes.status})` },
+            { status: upstreamRes.status || 502 }
+          );
+        }
+
+        const rawReply: string | undefined = json?.choices?.[0]?.message?.content;
+        const reply = rawReply?.replace(/<think>[\s\S]*?<\/think>/gi, '').trim();
+        if (!reply) {
+          lastError = `${candidateModel}: empty response`;
+          continue;
+        }
+
+        return NextResponse.json({ success: true, reply, model: json.model || candidateModel });
       }
-
-      if (!upstreamRes.ok || json.error) {
-        return NextResponse.json(
-          { success: false, error: errMsg || `Upstream error (${upstreamRes.status})` },
-          { status: upstreamRes.status || 502 }
-        );
-      }
-
-      const reply = json?.choices?.[0]?.message?.content?.trim();
-      if (!reply) {
-        return NextResponse.json({ success: false, error: 'Empty response from AI gateway.' }, { status: 502 });
-      }
-
-      return NextResponse.json({ success: true, reply, model: json.model || candidateModel });
     }
 
     // All fallbacks failed
