@@ -7,7 +7,10 @@ interface ChatMessage {
 }
 
 const DEFAULT_BASE_URL = 'https://motapis.com/v1';
-const DEFAULT_MODEL = 'deepseek-v4.1-flash';
+// Ordered fastest→slowest; first model with quota wins.
+// MOTAPIS_MODEL env var overrides the primary (slot 0) only.
+const DEFAULT_MODEL = 'glm-5.3-flash';
+const FALLBACK_MODELS = ['deepseek-v4-flash', 'deepseek-v4.1-flash-1017', 'qwen3.8-max'];
 
 function buildSystemPrompt(liveSummary: string): string {
   return `You are **Gold Star AI**, the official AI assistant working strictly under **Gold Star**.
@@ -35,7 +38,6 @@ export async function POST(req: NextRequest) {
   try {
     const apiKey = process.env.MOTAPIS_API_KEY?.trim();
     const baseUrl = (process.env.MOTAPIS_BASE_URL || DEFAULT_BASE_URL).replace(/\/+$/, '');
-    const model = process.env.MOTAPIS_MODEL || DEFAULT_MODEL;
 
     if (!apiKey) {
       return NextResponse.json(
@@ -75,36 +77,57 @@ export async function POST(req: NextRequest) {
       // keep fallback summary
     }
 
-    const upstreamRes = await fetch(`${baseUrl}/chat/completions`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model,
-        temperature: 0.3,
-        max_tokens: 450,
-        stream: false,
-        messages: [
-          { role: 'system', content: buildSystemPrompt(liveSummary) },
-          ...recentMessages,
-        ],
-      }),
-    });
+    // Build ordered model list: primary first, then fallbacks
+    const primaryModel = process.env.MOTAPIS_MODEL?.trim() || DEFAULT_MODEL;
+    const modelsToTry = [primaryModel, ...FALLBACK_MODELS.filter((m) => m !== primaryModel)];
 
-    const json = await upstreamRes.json();
-    if (!upstreamRes.ok || json.error) {
-      const errMsg = json?.error?.message || `Upstream error (${upstreamRes.status})`;
-      return NextResponse.json({ success: false, error: errMsg }, { status: upstreamRes.status || 502 });
+    const payload = {
+      temperature: 0.3,
+      max_tokens: 450,
+      stream: false,
+      messages: [
+        { role: 'system', content: buildSystemPrompt(liveSummary) },
+        ...recentMessages,
+      ],
+    };
+
+    let lastError = 'All models exhausted quota.';
+    for (const candidateModel of modelsToTry) {
+      const upstreamRes = await fetch(`${baseUrl}/chat/completions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({ ...payload, model: candidateModel }),
+      });
+
+      const json = await upstreamRes.json();
+
+      // On quota exhaustion try next model silently
+      const errMsg: string = json?.error?.message || '';
+      if (!upstreamRes.ok && errMsg.includes('insufficient_user_quota')) {
+        lastError = `${candidateModel}: quota exhausted`;
+        continue;
+      }
+
+      if (!upstreamRes.ok || json.error) {
+        return NextResponse.json(
+          { success: false, error: errMsg || `Upstream error (${upstreamRes.status})` },
+          { status: upstreamRes.status || 502 }
+        );
+      }
+
+      const reply = json?.choices?.[0]?.message?.content?.trim();
+      if (!reply) {
+        return NextResponse.json({ success: false, error: 'Empty response from AI gateway.' }, { status: 502 });
+      }
+
+      return NextResponse.json({ success: true, reply, model: json.model || candidateModel });
     }
 
-    const reply = json?.choices?.[0]?.message?.content?.trim();
-    if (!reply) {
-      return NextResponse.json({ success: false, error: 'Empty response from AI gateway.' }, { status: 502 });
-    }
-
-    return NextResponse.json({ success: true, reply, model: json.model || model });
+    // All fallbacks failed
+    return NextResponse.json({ success: false, error: lastError }, { status: 429 });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Chat request failed';
     return NextResponse.json({ success: false, error: message }, { status: 500 });
