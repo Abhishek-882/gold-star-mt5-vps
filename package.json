@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@upstash/redis": "^1.41.1",
     "aos": "^2.3.4",
     "canvas-confetti": "^1.9.4",
     "clsx": "^2.1.1",

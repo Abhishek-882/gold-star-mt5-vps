@@ -1,5 +1,6 @@
 import { DashboardData, BotConfig, Position, HistoricalTrade, DailyPnl } from '@/types/trading';
 import { defaultDashboardData, generateCalendarMap } from './defaultData';
+import { redisGet, redisSet } from './redis';
 
 interface ServerState {
   currentData: DashboardData;
@@ -27,50 +28,15 @@ const getMemoryStore = (): ServerState => {
   return global.__goldStarServerState;
 };
 
-const getRedisConfig = () => {
-  const url = process.env.UPSTASH_REDIS_REST_URL?.replace(/\/+$/, '');
-  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
-  return url && token ? { url, token } : null;
-};
-
 const loadState = async (): Promise<ServerState> => {
-  const redis = getRedisConfig();
-  if (!redis) return getMemoryStore();
-
-  try {
-    const res = await fetch(`${redis.url}/get/${REDIS_KEY}`, {
-      headers: { Authorization: `Bearer ${redis.token}` },
-      cache: 'no-store',
-    });
-    if (res.ok) {
-      const json = await res.json();
-      if (json?.result) {
-        return JSON.parse(json.result) as ServerState;
-      }
-    }
-  } catch (err) {
-    console.error('[MT5Service] Redis read error, falling back to memory:', err);
-  }
+  const stored = await redisGet<ServerState>(REDIS_KEY);
+  if (stored) return stored;
   return getMemoryStore();
 };
 
 const saveState = async (state: ServerState): Promise<void> => {
   global.__goldStarServerState = state;
-  const redis = getRedisConfig();
-  if (!redis) return;
-
-  try {
-    await fetch(`${redis.url}/set/${REDIS_KEY}`, {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${redis.token}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(JSON.stringify(state)),
-    });
-  } catch (err) {
-    console.error('[MT5Service] Redis write error:', err);
-  }
+  await redisSet(REDIS_KEY, state); // no TTL — persist indefinitely
 };
 
 export class MT5Service {
