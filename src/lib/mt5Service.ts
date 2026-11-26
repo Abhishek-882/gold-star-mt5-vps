@@ -161,6 +161,20 @@ function recalculateStats(data: DashboardData, balance: number) {
 
 // ── MT5Service ───────────────────────────────────────────────────────────────
 
+function normalizeClosedTrade(t: HistoricalTrade): HistoricalTrade {
+  const profit = t.profit ?? 0;
+  const rawPips =
+    t.pips ??
+    Math.abs((t.closePrice ?? 0) - (t.openPrice ?? 0)) *
+      (t.symbol?.toUpperCase().includes('XAU') || t.symbol?.toUpperCase().includes('GOLD') ? 10 : 10000);
+  const pips = Number((profit >= 0 ? Math.abs(rawPips) : -Math.abs(rawPips)).toFixed(1));
+  return {
+    ...t,
+    pips,
+    duration: t.duration ?? 'Closed',
+  };
+}
+
 export class MT5Service {
   static async getDashboardData(): Promise<DashboardData> {
     const store = await loadState();
@@ -170,6 +184,10 @@ export class MT5Service {
     if (store.lastHeartbeat === 0 || now - store.lastHeartbeat > store.disconnectTimeoutMs) {
       data.botConfig.isLiveConnected = false;
       data.botConfig.status = store.lastHeartbeat === 0 ? 'PAUSED' : 'DISCONNECTED';
+    }
+
+    if (Array.isArray(data.closedTrades)) {
+      data.closedTrades = data.closedTrades.map(normalizeClosedTrade);
     }
 
     return data;
@@ -228,8 +246,8 @@ export class MT5Service {
 
     // Closed trade history — merge & deduplicate by ticket
     if (payload.history && payload.history.length > 0) {
-      const existing = new Map(data.closedTrades.map(t => [t.ticket ?? t.closeTime, t]));
-      payload.history.forEach(t => existing.set(t.ticket ?? t.closeTime, t));
+      const existing = new Map(data.closedTrades.map(t => [t.ticket ?? t.closeTime, normalizeClosedTrade(t)]));
+      payload.history.forEach(t => existing.set(t.ticket ?? t.closeTime, normalizeClosedTrade(t)));
       data.closedTrades = Array.from(existing.values())
         .sort((a, b) => (a.closeTime > b.closeTime ? -1 : 1)); // newest first
       recalculateStats(data, balance);

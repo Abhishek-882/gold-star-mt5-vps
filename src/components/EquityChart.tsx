@@ -140,13 +140,13 @@ export function EquityChart() {
                         <div className="flex items-center justify-between gap-4 font-mono">
                           <span className="text-slate-300">Live Equity:</span>
                           <span className="font-bold text-gold-400">
-                            ${pt.equity.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                            ${(pt.equity ?? 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                           </span>
                         </div>
                         <div className="flex items-center justify-between gap-4 font-mono mt-0.5">
                           <span className="text-slate-400">Net Growth:</span>
                           <span className="font-bold text-emerald-400">
-                            +{pt.growthPercent.toFixed(2)}%
+                            +{(pt.growthPercent ?? 0).toFixed(2)}%
                           </span>
                         </div>
                       </div>

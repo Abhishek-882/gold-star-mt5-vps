@@ -90,17 +90,17 @@ export function LiveTradesTable() {
                       </span>
                     </td>
                     <td className="py-3.5 px-3 text-slate-200 font-semibold">
-                      {pos.lots.toFixed(2)}
+                      {(pos.lots ?? 0).toFixed(2)}
                     </td>
                     <td className="py-3.5 px-3 text-slate-300">
-                      ${pos.openPrice.toFixed(2)}
+                      ${(pos.openPrice ?? 0).toFixed(2)}
                     </td>
                     <td className="py-3.5 px-3 text-white font-bold">
-                      ${pos.currentPrice.toFixed(2)}
+                      ${(pos.currentPrice ?? 0).toFixed(2)}
                     </td>
                     <td className="py-3.5 px-3 text-slate-400 text-[11px]">
-                      <span className="text-red-400/90">{pos.sl.toFixed(2)}</span> /{' '}
-                      <span className="text-emerald-400/90">{pos.tp.toFixed(2)}</span>
+                      <span className="text-red-400/90">{(pos.sl ?? 0).toFixed(2)}</span> /{' '}
+                      <span className="text-emerald-400/90">{(pos.tp ?? 0).toFixed(2)}</span>
                     </td>
                     <td className="py-3.5 px-3 text-right">
                       <div
@@ -108,16 +108,16 @@ export function LiveTradesTable() {
                           isProfit ? 'text-fintech-green' : 'text-fintech-red'
                         }`}
                       >
-                        {isProfit ? `+$${pos.profit.toFixed(2)}` : `-$${Math.abs(pos.profit).toFixed(2)}`}
+                        {isProfit ? `+$${(pos.profit ?? 0).toFixed(2)}` : `-$${Math.abs(pos.profit ?? 0).toFixed(2)}`}
                       </div>
                       <div className="text-[10px] text-slate-400">
-                        {pos.pips >= 0 ? `+${pos.pips.toFixed(1)}` : `${pos.pips.toFixed(1)}`} pips
+                        {(pos.pips ?? 0) >= 0 ? `+${(pos.pips ?? 0).toFixed(1)}` : `${(pos.pips ?? 0).toFixed(1)}`} pips
                       </div>
                     </td>
                     <td className="py-3.5 px-3 text-right text-slate-400">
                       <div className="flex items-center justify-end gap-1 text-[11px]">
                         <Clock className="w-3 h-3 text-slate-500" />
-                        {pos.duration}
+                        {pos.duration ?? 'Active'}
                       </div>
                     </td>
                   </tr>

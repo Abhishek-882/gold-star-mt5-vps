@@ -41,18 +41,22 @@ export function ClosedTradesTable() {
       'Duration',
     ];
 
-    const rows = data.closedTrades.map((t) => [
-      t.ticket,
-      `"${t.closeTime}"`,
-      t.symbol,
-      t.type,
-      t.lots.toFixed(2),
-      t.openPrice.toFixed(2),
-      t.closePrice.toFixed(2),
-      t.profit.toFixed(2),
-      t.pips.toFixed(1),
-      `"${t.duration}"`,
-    ]);
+    const rows = data.closedTrades.map((t) => {
+      const pips = t.pips ?? 0;
+      const duration = t.duration ?? 'Closed';
+      return [
+        t.ticket,
+        `"${t.closeTime}"`,
+        t.symbol,
+        t.type,
+        (t.lots ?? 0).toFixed(2),
+        (t.openPrice ?? 0).toFixed(2),
+        (t.closePrice ?? 0).toFixed(2),
+        (t.profit ?? 0).toFixed(2),
+        pips.toFixed(1),
+        `"${duration}"`,
+      ];
+    });
 
     const csvContent =
       'data:text/csv;charset=utf-8,' +
@@ -154,7 +158,14 @@ export function ClosedTradesTable() {
           <tbody className="divide-y divide-dark-border font-mono">
             {filteredTrades.slice(0, visibleCount).map((trade) => {
               const isBuy = trade.type === 'BUY';
-              const isProfit = trade.profit >= 0;
+              const profit = trade.profit ?? 0;
+              const isProfit = profit >= 0;
+              const rawPips =
+                trade.pips ??
+                Math.abs((trade.closePrice ?? 0) - (trade.openPrice ?? 0)) *
+                  (trade.symbol?.toUpperCase().includes('XAU') || trade.symbol?.toUpperCase().includes('GOLD') ? 10 : 10000);
+              const pips = isProfit ? Math.abs(rawPips) : -Math.abs(rawPips);
+              const duration = trade.duration ?? 'Closed';
 
               return (
                 <tr key={trade.ticket} className="hover:bg-dark-elevated/40 transition-colors">
@@ -184,13 +195,13 @@ export function ClosedTradesTable() {
                     </span>
                   </td>
                   <td className="py-3 px-3 text-slate-200">
-                    {trade.lots.toFixed(2)}
+                    {(trade.lots ?? 0).toFixed(2)}
                   </td>
                   <td className="py-3 px-3 text-slate-300">
-                    ${trade.openPrice.toFixed(2)}
+                    ${(trade.openPrice ?? 0).toFixed(2)}
                   </td>
                   <td className="py-3 px-3 text-slate-200 font-semibold">
-                    ${trade.closePrice.toFixed(2)}
+                    ${(trade.closePrice ?? 0).toFixed(2)}
                   </td>
                   <td className="py-3 px-3 text-right">
                     <span
@@ -198,16 +209,16 @@ export function ClosedTradesTable() {
                         isProfit ? 'text-fintech-green' : 'text-fintech-red'
                       }`}
                     >
-                      {isProfit ? `+$${trade.profit.toFixed(2)}` : `-$${Math.abs(trade.profit).toFixed(2)}`}
+                      {isProfit ? `+$${profit.toFixed(2)}` : `-$${Math.abs(profit).toFixed(2)}`}
                     </span>
                     <span className="text-[10px] text-slate-500 block">
-                      {trade.pips >= 0 ? `+${trade.pips.toFixed(1)}` : `${trade.pips.toFixed(1)}`} pips
+                      {pips >= 0 ? `+${pips.toFixed(1)}` : `${pips.toFixed(1)}`} pips
                     </span>
                   </td>
                   <td className="py-3 px-3 text-right text-slate-400 text-[11px]">
                     <div className="flex items-center justify-end gap-1">
                       <Clock className="w-3 h-3 text-slate-500" />
-                      {trade.duration}
+                      {duration}
                     </div>
                   </td>
                 </tr>
