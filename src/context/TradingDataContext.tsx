@@ -21,9 +21,9 @@ const TradingDataContext = createContext<TradingDataContextType | undefined>(und
 
 export function TradingDataProvider({ children }: { children: React.ReactNode }) {
   const [data, setData] = useState<DashboardData>(defaultDashboardData);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
-  const [lastSyncFormatted, setLastSyncFormatted] = useState<string>('Just now');
+  const [lastSyncFormatted, setLastSyncFormatted] = useState<string>('Syncing...');
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
 
   const calculateLastSync = useCallback((isoString: string) => {

@@ -3,11 +3,15 @@
 import React from 'react';
 import { useTradingData } from '@/context/TradingDataContext';
 import { useLanguage } from '@/context/LanguageContext';
-import { AlertTriangle, RefreshCw, ServerCrash } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
+import { RefreshCw, ServerCrash } from 'lucide-react';
 
 export function DisconnectedBanner() {
-  const { data, refreshData, isRefreshing, setIsSettingsOpen } = useTradingData();
+  const { data, isLoading, refreshData, isRefreshing, setIsSettingsOpen } = useTradingData();
   const { t } = useLanguage();
+  const { isAdmin } = useAuth();
+
+  if (isLoading) return null;
 
   const isDisconnected = !data.botConfig.isLiveConnected || data.botConfig.status === 'DISCONNECTED' || data.botConfig.status === 'PAUSED';
 
@@ -51,12 +55,14 @@ export function DisconnectedBanner() {
             <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
             <span>Retry Feed</span>
           </button>
-          <button
-            onClick={() => setIsSettingsOpen(true)}
-            className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 border border-white/20 text-xs font-medium text-slate-200 transition-colors"
-          >
-            Configure MT5
-          </button>
+          {isAdmin && (
+            <button
+              onClick={() => setIsSettingsOpen(true)}
+              className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 border border-white/20 text-xs font-medium text-slate-200 transition-colors"
+            >
+              Configure MT5
+            </button>
+          )}
         </div>
       </div>
     </aside>

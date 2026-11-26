@@ -10,7 +10,7 @@ import { Star, ShieldCheck, RefreshCw, Settings, Globe, Lock, User, Home, Activi
 
 export function Header() {
   const pathname = usePathname();
-  const { data, refreshData, isRefreshing, lastSyncFormatted, setIsSettingsOpen } = useTradingData();
+  const { data, isLoading, refreshData, isRefreshing, lastSyncFormatted, setIsSettingsOpen } = useTradingData();
   const { language, toggleLanguage, t } = useLanguage();
   const { isAdmin, setIsLoginModalOpen } = useAuth();
 
@@ -44,22 +44,26 @@ export function Header() {
           {/* Live Pulsing Dot Badge */}
           <div
             className={`flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-3 py-1.5 rounded-full border text-[11px] sm:text-xs font-semibold tracking-wide transition-all ${
-              isLive
+              isLoading
+                ? 'bg-dark-elevated border-gold-500/30 text-gold-300'
+                : isLive
                 ? 'bg-fintech-greenSoft border-fintech-green/40 text-fintech-green'
                 : 'bg-fintech-redSoft border-fintech-red/40 text-fintech-red'
             }`}
           >
             <span className="relative flex h-2 w-2">
-              {isLive && (
+              {!isLoading && isLive && (
                 <span className="animate-ping-slow absolute inline-flex h-full w-full rounded-full bg-fintech-green opacity-75"></span>
               )}
               <span
                 className={`relative inline-flex rounded-full h-2 w-2 ${
-                  isLive ? 'bg-fintech-green' : 'bg-fintech-red'
+                  isLoading ? 'bg-gold-400 animate-pulse' : isLive ? 'bg-fintech-green' : 'bg-fintech-red'
                 }`}
               ></span>
             </span>
-            <span className="font-mono uppercase">{isLive ? t.liveBadge : t.pausedBadge}</span>
+            <span className="font-mono uppercase">
+              {isLoading ? 'SYNCING...' : isLive ? t.liveBadge : t.pausedBadge}
+            </span>
           </div>
 
           {/* Verified Investor Badge */}
