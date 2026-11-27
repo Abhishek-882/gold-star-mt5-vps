@@ -101,7 +101,7 @@ export function StrategyShowcaseSection() {
       {mainStar && (
         <Link
           href="/terminal"
-          className="block rounded-3xl bg-gradient-to-br from-gold-500/15 via-dark-card to-dark-elevated border border-gold-500/50 p-6 sm:p-7 hover:border-gold-400 transition-all shadow-gold-subtle group"
+          className="block rounded-3xl bg-gradient-to-br from-gold-500/15 via-dark-card to-dark-elevated border border-gold-500/40 p-6 sm:p-7 hover:border-gold-400 transition-all shadow-gold-subtle group gold-border-beam tactile-press"
         >
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
             <div className="space-y-2.5 max-w-2xl">
@@ -160,7 +160,7 @@ export function StrategyShowcaseSection() {
           <Link
             key={item.meta.slug}
             href={`/terminal?strategy=${item.meta.slug}`}
-            className="rounded-2xl bg-dark-card border border-dark-border hover:border-gold-500/40 p-5 flex flex-col justify-between gap-4 transition-all card-elevate group"
+            className="rounded-2xl bg-dark-card border border-dark-border hover:border-gold-500/40 p-5 flex flex-col justify-between gap-4 transition-all card-elevate tactile-press group"
           >
             <div className="space-y-2">
               <div className="flex items-center justify-between gap-2">

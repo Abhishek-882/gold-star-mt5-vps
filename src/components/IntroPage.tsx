@@ -32,6 +32,8 @@ import { LiveTradesTable } from './LiveTradesTable';
 import { ConversionSection } from './ConversionSection';
 import { Footer } from './Footer';
 import { StrategyShowcaseSection } from './StrategyShowcaseSection';
+import { HeroParticles } from './HeroParticles';
+import { ScrollStorySection } from './ScrollStorySection';
 
 export function IntroPage() {
   const router = useRouter();
@@ -53,7 +55,7 @@ export function IntroPage() {
   };
 
   return (
-    <div className="min-h-screen bg-dark-base fintech-grid-bg relative text-slate-100 flex flex-col overflow-x-hidden pb-20 sm:pb-0 page-enter">
+    <div className="min-h-screen bg-dark-base fintech-grid-bg relative text-slate-100 flex flex-col overflow-x-clip pb-20 sm:pb-0 page-enter">
       {/* 1. Live Gold Ribbon Stream Bar */}
       <div className="w-full bg-gradient-to-r from-dark-card via-gold-500/15 to-dark-card border-b border-gold-500/20 py-2 px-3 sm:px-4 overflow-hidden sticky top-0 z-40 backdrop-blur-md">
         <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2 text-xs font-mono">
@@ -94,7 +96,8 @@ export function IntroPage() {
       </div>
 
       {/* 2. Hero Section */}
-      <section className="relative pt-12 pb-16 sm:pt-20 sm:pb-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full text-center space-y-8">
+      <section className="relative pt-12 pb-16 sm:pt-20 sm:pb-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full text-center space-y-8 overflow-hidden">
+        <HeroParticles />
         {/* Glow ambient background elements */}
         <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-96 h-96 bg-gold-500/10 rounded-full blur-3xl pointer-events-none"></div>
 
@@ -366,6 +369,9 @@ export function IntroPage() {
           </div>
         </div>
       </section>
+
+      {/* 5b. Sticky Scroll-Driven Architecture Story */}
+      <ScrollStorySection />
 
       {/* 6. Lead Capture & FAQ Conversion Section */}
       <section className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full">

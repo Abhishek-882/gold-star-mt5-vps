@@ -15,6 +15,7 @@ import {
   ShieldAlert,
   Wallet,
 } from 'lucide-react';
+import { NumberTicker } from './NumberTicker';
 
 export function KpiCards() {
   const { data, isLoading } = useTradingData();
@@ -62,7 +63,7 @@ export function KpiCards() {
               {t.balance}
             </span>
             <div className="text-xl sm:text-2xl font-black font-mono tracking-tight text-white">
-              {formatCurrency(metrics.balance)}
+              <NumberTicker value={metrics.balance} prefix="$" />
             </div>
           </div>
         </div>
@@ -82,7 +83,7 @@ export function KpiCards() {
               </span>
             </div>
             <div className="text-xl sm:text-2xl font-black font-mono tracking-tight text-emerald-400">
-              {formatCurrency(metrics.equity)}
+              <NumberTicker value={metrics.equity} prefix="$" />
             </div>
           </div>
         </div>
@@ -111,7 +112,7 @@ export function KpiCards() {
                 metrics.floatingPnl >= 0 ? 'text-fintech-green' : 'text-fintech-red'
               }`}
             >
-              {formatCurrency(metrics.floatingPnl, true)}
+              <NumberTicker value={metrics.floatingPnl} prefix="$" showSign />
             </div>
           </div>
         </div>
@@ -121,8 +122,6 @@ export function KpiCards() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3.5">
         {/* 1. Today's PnL */}
         <div
-          data-aos="fade-up"
-          data-aos-duration="600"
           className="p-4 rounded-2xl bg-dark-card border border-dark-border hover:border-gold-500/30 transition-all duration-200 group"
         >
           <div className="flex items-center justify-between mb-1.5">
@@ -156,9 +155,6 @@ export function KpiCards() {
 
         {/* 2. This Week PnL */}
         <div
-          data-aos="fade-up"
-          data-aos-duration="600"
-          data-aos-delay="50"
           className="p-4 rounded-2xl bg-dark-card border border-dark-border hover:border-gold-500/30 transition-all duration-200"
         >
           <div className="flex items-center justify-between mb-1.5">
@@ -192,9 +188,6 @@ export function KpiCards() {
 
         {/* 3. This Month PnL */}
         <div
-          data-aos="fade-up"
-          data-aos-duration="600"
-          data-aos-delay="100"
           className="p-4 rounded-2xl bg-dark-card border border-dark-border hover:border-gold-500/30 transition-all duration-200"
         >
           <div className="flex items-center justify-between mb-1.5">
@@ -228,9 +221,6 @@ export function KpiCards() {
 
         {/* 4. Total Growth */}
         <div
-          data-aos="fade-up"
-          data-aos-duration="600"
-          data-aos-delay="150"
           className="p-4 rounded-2xl bg-dark-card border border-gold-500/30 hover:border-gold-400 transition-all duration-200 shadow-gold-subtle"
         >
           <div className="flex items-center justify-between mb-1.5">
@@ -249,9 +239,6 @@ export function KpiCards() {
 
         {/* 5. Win Rate */}
         <div
-          data-aos="fade-up"
-          data-aos-duration="600"
-          data-aos-delay="200"
           className="p-4 rounded-2xl bg-dark-card border border-dark-border hover:border-gold-500/30 transition-all duration-200"
         >
           <div className="flex items-center justify-between mb-1.5">
@@ -273,9 +260,6 @@ export function KpiCards() {
 
         {/* 6. Total Trades / Profit Factor / Max DD */}
         <div
-          data-aos="fade-up"
-          data-aos-duration="600"
-          data-aos-delay="250"
           className="p-4 rounded-2xl bg-dark-card border border-dark-border hover:border-gold-500/30 transition-all duration-200 flex flex-col justify-between"
         >
           <div className="flex items-center justify-between mb-1">

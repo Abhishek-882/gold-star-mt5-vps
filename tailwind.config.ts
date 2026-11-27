@@ -10,30 +10,30 @@ const config: Config = {
     extend: {
       colors: {
         gold: {
-          50: "#FFFDF0",
-          100: "#FFF9C2",
-          200: "#FFF28A",
-          300: "#FFE94D",
-          400: "#FFDF1A",
-          500: "#FFD700", // Gold Star Brand Gold
-          600: "#D4AF37", // Metallic Gold
-          700: "#AA8C2C",
-          800: "#7F6921",
-          900: "#554616",
+          50: "#FBF8F1",
+          100: "#F6EEDC",
+          200: "#EFE0BF",
+          300: "#F5E1B8",
+          400: "#E6C27A",
+          500: "#D4A853", // Institutional Bullion Gold
+          600: "#B88B36", // Brushed Metallic Gold
+          700: "#8F6A25",
+          800: "#664B1A",
+          900: "#3D2D10",
         },
         dark: {
-          base: "#07080B",
-          card: "#0D0F15",
-          elevated: "#131722",
-          border: "#1C2230",
-          hover: "#1A202E",
+          base: "#09090B",
+          card: "#0F1014",
+          elevated: "#16181F",
+          border: "#232632",
+          hover: "#1D202A",
         },
         fintech: {
-          green: "#00C087",
-          greenSoft: "rgba(0, 192, 135, 0.12)",
-          red: "#FF3B56",
-          redSoft: "rgba(255, 59, 86, 0.12)",
-          cyan: "#00E5FF",
+          green: "#10B981",
+          greenSoft: "rgba(16, 185, 129, 0.12)",
+          red: "#F43F5E",
+          redSoft: "rgba(244, 63, 94, 0.12)",
+          cyan: "#38BDF8",
         }
       },
       fontFamily: {
@@ -41,9 +41,9 @@ const config: Config = {
         mono: ["JetBrains Mono", "SF Mono", "Fira Code", "monospace"],
       },
       boxShadow: {
-        'gold-glow': '0 0 25px -5px rgba(255, 215, 0, 0.25)',
-        'gold-subtle': '0 0 15px -3px rgba(255, 215, 0, 0.12)',
-        'green-glow': '0 0 20px -5px rgba(0, 192, 135, 0.3)',
+        'gold-glow': '0 0 28px -6px rgba(212, 168, 83, 0.24)',
+        'gold-subtle': '0 0 16px -4px rgba(212, 168, 83, 0.12)',
+        'green-glow': '0 0 20px -5px rgba(16, 185, 129, 0.25)',
       },
       animation: {
         'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',

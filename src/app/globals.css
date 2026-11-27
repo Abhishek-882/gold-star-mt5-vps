@@ -9,10 +9,10 @@
   }
 
   body {
-    background-color: #07080B;
-    color: #F1F5F9;
+    background-color: #09090B;
+    color: #F4F4F5;
     font-feature-settings: "cv02", "cv03", "cv04", "cv11";
-    overflow-x: hidden;
+    overflow-x: clip;
   }
 }
 
@@ -28,16 +28,16 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: #090B0F;
+  background: #09090B;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #1E2330;
+  background: #232632;
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #D4AF37;
+  background: #D4A853;
 }
 
 /* Fintech Gold Star Card Shimmer */
@@ -50,7 +50,7 @@
   inset: -1px;
   border-radius: inherit;
   padding: 1px;
-  background: linear-gradient(135deg, rgba(255, 215, 0, 0.35), rgba(255, 215, 0, 0.05), transparent 70%);
+  background: linear-gradient(135deg, rgba(212, 168, 83, 0.35), rgba(212, 168, 83, 0.05), transparent 70%);
   -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
@@ -59,10 +59,10 @@
 
 /* Grid Background */
 .fintech-grid-bg {
-  background-size: 32px 32px;
+  background-size: 36px 36px;
   background-image: 
-    linear-gradient(to right, rgba(255, 215, 0, 0.03) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 215, 0, 0.03) 1px, transparent 1px);
+    linear-gradient(to right, rgba(212, 168, 83, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(212, 168, 83, 0.03) 1px, transparent 1px);
 }
 
 /* Mobile-first touch & safe-area ergonomics */
@@ -136,16 +136,79 @@ button, a, select, input {
   .btn-sheen:hover::after {
     left: 140%;
   }
+
+  /* Magic UI style animated Border-Beam for Main Star card */
+  .gold-border-beam {
+    position: relative;
+    isolation: isolate;
+  }
+  .gold-border-beam::before {
+    content: '';
+    position: absolute;
+    inset: -1.5px;
+    border-radius: inherit;
+    padding: 1.5px;
+    background: conic-gradient(
+      from var(--beam-angle, 0deg),
+      transparent 0deg 280deg,
+      rgba(250, 204, 21, 0.9) 320deg,
+      rgba(245, 158, 11, 0.45) 350deg,
+      transparent 360deg
+    );
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    animation: beamRotate 5.5s linear infinite;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .tactile-press {
+    transition: transform 150ms cubic-bezier(0.2, 0.0, 0.0, 1.0), border-color 180ms ease, box-shadow 180ms ease;
+  }
+  .tactile-press:active {
+    transform: scale(0.975);
+  }
+}
+
+@property --beam-angle {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
+@keyframes beamRotate {
+  to {
+    --beam-angle: 360deg;
+  }
+}
+
+@keyframes modalSpringIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.modal-spring-in {
+  animation: modalSpringIn 220ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 @media (prefers-reduced-motion: reduce) {
   .page-enter,
+  .modal-spring-in,
   .fintech-sweep::after,
-  .btn-sheen::after {
+  .btn-sheen::after,
+  .gold-border-beam::before {
     animation: none !important;
     transition: none !important;
   }
-  .card-elevate:hover {
+  .card-elevate:hover,
+  .tactile-press:active {
     transform: none;
   }
 }
