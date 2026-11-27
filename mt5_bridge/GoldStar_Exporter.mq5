@@ -177,8 +177,10 @@ string BuildHistoryJson()
          if(deals[k].posId == posId)
          {
             deals[k].openPrice = HistoryDealGetDouble(pt, DEAL_PRICE);
+            long   inType      = HistoryDealGetInteger(pt, DEAL_TYPE);
             long   inMagic     = HistoryDealGetInteger(pt, DEAL_MAGIC);
             string inComment   = HistoryDealGetString(pt, DEAL_COMMENT);
+            deals[k].dir       = (inType == DEAL_TYPE_BUY) ? "BUY" : "SELL";
             if(inMagic > 0) deals[k].magic = inMagic;
             if(StringLen(inComment) > 0) deals[k].comment = inComment;
          }

@@ -89,9 +89,9 @@ export function classifyTradeStrategy(
   const magic = typeof trade.magic === 'number' ? trade.magic : Number(trade.magic);
 
   if (Number.isFinite(magic) && magic > 0) {
-    if (magic === 224943) return 'gold-star';
-    if (magic === 1000 || magic === 2000) return 'gold-scalp-x';
-    if (magic === 900000 || magic === 900200 || magic === 900300) return 'zone3';
+    if (magic === 224943 || (magic >= 224940 && magic <= 224999)) return 'gold-star';
+    if (magic === 1000 || magic === 1001 || magic === 2000) return 'gold-scalp-x';
+    if (magic === 900000 || magic === 900200 || magic === 900300 || magic === 90909103) return 'zone3';
     if (magic === 111 || magic === 222 || magic === 333) return 'btc-swing-ea';
     if (magic === 900) return 'expert-macd';
   }
