@@ -37,7 +37,8 @@ const REDIS_KEYS: Record<TerminalId, string> = {
 };
 
 function normalizeTerminalId(id?: string | null): TerminalId {
-  return id === 'desk-5' ? 'desk-5' : 'primary';
+  const clean = (id || '').trim().toLowerCase();
+  return clean === 'desk-5' || clean === 'desk5' || clean === 'mt5-2' ? 'desk-5' : 'primary';
 }
 
 const createInitialState = (terminalId: TerminalId = 'primary'): ServerState => {
@@ -280,7 +281,8 @@ export class MT5Service {
     const now = Date.now();
     const data: DashboardData = JSON.parse(JSON.stringify(store.currentData));
 
-    if (store.lastHeartbeat === 0 || now - store.lastHeartbeat > store.disconnectTimeoutMs) {
+    const timeoutMs = Math.max(store.disconnectTimeoutMs || 120000, 180000);
+    if (store.lastHeartbeat === 0 || now - store.lastHeartbeat > timeoutMs) {
       data.botConfig.isLiveConnected = false;
       data.botConfig.status = store.lastHeartbeat === 0 ? 'PAUSED' : 'DISCONNECTED';
     }

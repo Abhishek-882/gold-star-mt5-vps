@@ -47,7 +47,7 @@ export function TradingDataProvider({ children }: { children: React.ReactNode })
         activeStrategy === 'gold-star'
           ? '/api/mt5/live?t=' + Date.now()
           : `/api/mt5/strategies?slug=${encodeURIComponent(activeStrategy)}&t=${Date.now()}`;
-      const res = await fetch(url);
+      const res = await fetch(url, { cache: 'no-store' });
       if (res.ok) {
         const json = await res.json();
         if (json.success && json.data) {
