@@ -249,6 +249,9 @@ export class MT5Service {
       data.botConfig.whatsappUrl =
         'https://wa.me/919963303115?text=Hi%2C%20I%20would%20like%20to%20request%20Gold%20Star%20MT5%20Bot%20demo%20%26%20investor%20access.';
     }
+    if (!data.botConfig.telegramUrl || data.botConfig.telegramUrl.includes('YourUsername')) {
+      data.botConfig.telegramUrl = 'https://t.me/Chinna119';
+    }
 
     data.equityCurve = buildEquityCurve(
       store.equitySnapshots,

@@ -196,7 +196,7 @@ export const translations: Record<Language, Translations> = {
     // Conversion / Contact
     ctaTitle: "Want Gold Star Bot For Your MT5 Account?",
     ctaSubtitle: "Connect directly to our verified algorithmic trading setup. Fully automated, strict Stop Loss on every single position, zero dangerous martingale, zero grid.",
-    telegramBtn: "Telegram Channel",
+    telegramBtn: "Telegram DM",
     whatsappBtn: "WhatsApp Direct",
     instagramBtn: "Instagram Page",
     requestDemoTitle: "Request Free Demo Access & Performance Pass",
@@ -309,7 +309,7 @@ export const translations: Record<Language, Translations> = {
     // Conversion / Contact
     ctaTitle: "మీ MT5 ఖాతాలో గోల్డ్ స్టార్ బోట్ కావాలా?",
     ctaSubtitle: "మా ఇన్‌స్టిట్యూషనల్ గోల్డ్ ట్రేడింగ్ బోట్‌ను మీ ఖాతాకు కనెక్ట్ చేసుకోండి. 100% ఆటోమేటెడ్, ప్రతి ట్రేడ్‌కు ఖచ్చితమైన స్టాప్ లాస్, ప్రమాదకరమైన మార్టింగేల్ లేదు.",
-    telegramBtn: "టెలిగ్రామ్ ఛానెల్",
+    telegramBtn: "టెలిగ్రామ్ మెసేజ్",
     whatsappBtn: "వాట్సాప్ మెసేజ్",
     instagramBtn: "ఇన్‌స్టాగ్రామ్ పేజీ",
     requestDemoTitle: "ఉచిత డెమో యాక్సెస్ & ఇన్వెస్టర్ పాస్‌వర్డ్ పొందండి",

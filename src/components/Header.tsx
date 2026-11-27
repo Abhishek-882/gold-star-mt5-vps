@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import { useTradingData } from '@/context/TradingDataContext';
 import { useLanguage } from '@/context/LanguageContext';
 import { useAuth } from '@/context/AuthContext';
-import { Star, ShieldCheck, RefreshCw, Settings, Globe, Lock, User, Home, Activity, Sparkles } from 'lucide-react';
+import { Star, ShieldCheck, RefreshCw, Settings, Globe, Lock, User, Home, Activity, Sparkles, Send } from 'lucide-react';
 
 export function Header() {
   const pathname = usePathname();
@@ -137,6 +137,18 @@ export function Header() {
             <User className="w-3.5 h-3.5 text-gold-400" />
             <span className="hidden sm:inline">Profile</span>
           </Link>
+
+          {/* Telegram Direct Message */}
+          <a
+            href={data.botConfig.telegramUrl || 'https://t.me/Chinna119'}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-2 sm:px-2.5 py-1.5 rounded-lg bg-[#229ED9]/15 hover:bg-[#229ED9]/25 border border-[#229ED9]/40 text-[#229ED9] hover:text-white text-xs font-bold transition-colors flex items-center gap-1"
+            title="Message Abhishek on Telegram (@Chinna119)"
+          >
+            <Send className="w-3.5 h-3.5" />
+            <span className="hidden lg:inline">Telegram</span>
+          </a>
 
           {/* Gold Star AI Assistant Trigger */}
           <button

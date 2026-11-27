@@ -270,6 +270,15 @@ export function GoldStarChatWidget() {
               </div>
               <div className="flex items-center gap-1.5">
                 <a
+                  href="https://t.me/Chinna119"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title="Telegram DM (@Chinna119)"
+                  className="p-1.5 rounded-lg bg-[#229ED9]/15 hover:bg-[#229ED9]/25 border border-[#229ED9]/40 text-[#229ED9] transition-colors"
+                >
+                  <Send className="w-4 h-4" />
+                </a>
+                <a
                   href="https://wa.me/919963303115?text=Hi%20Abhishek%2C%20I%20have%20a%20question%20about%20Gold%20Star%20MT5%20Bot."
                   target="_blank"
                   rel="noopener noreferrer"
