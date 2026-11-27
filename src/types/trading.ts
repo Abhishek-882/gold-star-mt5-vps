@@ -1,5 +1,40 @@
 export type TradeDirection = 'BUY' | 'SELL';
 
+export type StrategySlug =
+  | 'gold-star'
+  | 'gold-scalp-x'
+  | 'zone3'
+  | 'btc-swing-ea'
+  | 'expert-macd';
+
+export interface StrategyMeta {
+  slug: StrategySlug;
+  name: string;
+  shortName: string;
+  tagline: string;
+  symbol: string;
+  badge: string;
+  isMainStar?: boolean;
+  magicNumbers: number[];
+  commentPrefixes: string[];
+  terminalSource: 'primary' | 'desk-5';
+  description: string;
+}
+
+export interface StrategySummary {
+  meta: StrategyMeta;
+  isLiveConnected: boolean;
+  totalTrades: number;
+  winTrades: number;
+  lossTrades: number;
+  winRate: number;
+  netProfit: number;
+  floatingPnl: number;
+  openCount: number;
+  profitFactor: number;
+  lastUpdated: string;
+}
+
 export interface Position {
   ticket: number;
   symbol: string;
@@ -13,6 +48,9 @@ export interface Position {
   pips: number;
   openTime: string;
   duration: string;
+  magic?: number;
+  comment?: string;
+  strategySlug?: StrategySlug;
 }
 
 export interface HistoricalTrade {
@@ -28,6 +66,9 @@ export interface HistoricalTrade {
   duration: string;
   swap?: number;
   commission?: number;
+  magic?: number;
+  comment?: string;
+  strategySlug?: StrategySlug;
 }
 
 export interface AccountMetrics {

@@ -31,6 +31,7 @@ import { EquityChart } from './EquityChart';
 import { LiveTradesTable } from './LiveTradesTable';
 import { ConversionSection } from './ConversionSection';
 import { Footer } from './Footer';
+import { StrategyShowcaseSection } from './StrategyShowcaseSection';
 
 export function IntroPage() {
   const router = useRouter();
@@ -324,6 +325,9 @@ export function IntroPage() {
           </div>
         </div>
       </section>
+
+      {/* Multi-Strategy Desk Showcase (Gold Star Main Star + 5-Strategy MT5 #2) */}
+      <StrategyShowcaseSection />
 
       {/* 5. 3-Step Setup Guide */}
       <section className="py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full space-y-8">

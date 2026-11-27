@@ -13,11 +13,16 @@ export async function POST(request: NextRequest) {
     }
 
     const payload = await request.json();
+    const terminalQuery = request.nextUrl.searchParams.get('terminal');
+    if (terminalQuery && !payload.terminalId) {
+      payload.terminalId = terminalQuery;
+    }
     const updated = await MT5Service.ingestMT5Update(payload);
 
     return NextResponse.json({
       success: true,
       message: 'MT5 telemetry ingested successfully',
+      terminalId: payload.terminalId || 'primary',
       serverTime: new Date().toISOString(),
       balance: updated.metrics.balance,
       equity: updated.metrics.equity,

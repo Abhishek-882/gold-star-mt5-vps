@@ -126,6 +126,19 @@ export function Header() {
           </Link>
 
           <Link
+            href="/strategies/gold-star"
+            className={`px-2 sm:px-2.5 py-1.5 rounded-lg border text-xs font-mono transition-colors flex items-center gap-1 ${
+              pathname?.startsWith('/strategies')
+                ? 'bg-gold-500/15 border-gold-500/40 text-gold-300'
+                : 'bg-dark-elevated hover:bg-dark-hover border-dark-border text-slate-300 hover:text-white'
+            }`}
+            title="All 5 Live Strategies"
+          >
+            <Star className="w-3.5 h-3.5 text-gold-400" />
+            <span className="hidden md:inline">Strategies</span>
+          </Link>
+
+          <Link
             href="/profile"
             className={`px-2 sm:px-2.5 py-1.5 rounded-lg border text-xs font-mono transition-colors flex items-center gap-1 ${
               pathname === '/profile'

@@ -1,6 +1,21 @@
-import { DashboardData, BotConfig, Position, HistoricalTrade, DailyPnl } from '@/types/trading';
+import {
+  DashboardData,
+  BotConfig,
+  Position,
+  HistoricalTrade,
+  DailyPnl,
+  StrategySlug,
+  StrategySummary,
+} from '@/types/trading';
 import { defaultDashboardData, generateCalendarMap } from './defaultData';
 import { redisGet, redisSet } from './redis';
+import {
+  STRATEGY_CATALOG,
+  classifyTradeStrategy,
+  getStrategyMeta,
+} from './strategyCatalog';
+
+export type TerminalId = 'primary' | 'desk-5';
 
 interface EquitySnapshot { t: number; v: number } // timestamp ms, value
 
@@ -13,38 +28,57 @@ interface ServerState {
 
 declare global {
   // eslint-disable-next-line no-var
-  var __goldStarServerState: ServerState | undefined;
+  var __goldStarServerStateMap: Record<string, ServerState> | undefined;
 }
 
-const REDIS_KEY = 'goldstar:vantage:mt5:state';
-
-const createInitialState = (): ServerState => ({
-  currentData: JSON.parse(JSON.stringify(defaultDashboardData)),
-  lastHeartbeat: 0,
-  disconnectTimeoutMs: 120000,
-  equitySnapshots: [],
-});
-
-const getMemoryStore = (): ServerState => {
-  if (!global.__goldStarServerState) {
-    global.__goldStarServerState = createInitialState();
-  }
-  return global.__goldStarServerState;
+const REDIS_KEYS: Record<TerminalId, string> = {
+  primary: 'goldstar:vantage:mt5:state',
+  'desk-5': 'goldstar:vantage:mt5:state:desk-5',
 };
 
-const loadState = async (): Promise<ServerState> => {
-  const stored = await redisGet<ServerState>(REDIS_KEY);
+function normalizeTerminalId(id?: string | null): TerminalId {
+  return id === 'desk-5' ? 'desk-5' : 'primary';
+}
+
+const createInitialState = (terminalId: TerminalId = 'primary'): ServerState => {
+  const data: DashboardData = JSON.parse(JSON.stringify(defaultDashboardData));
+  if (terminalId === 'desk-5') {
+    data.botConfig.botName = 'Gold Star Desk (5-Strategy MT5)';
+    data.botConfig.symbol = 'XAUUSD / BTCUSD';
+  }
+  return {
+    currentData: data,
+    lastHeartbeat: 0,
+    disconnectTimeoutMs: 120000,
+    equitySnapshots: [],
+  };
+};
+
+const getMemoryStore = (terminalId: TerminalId = 'primary'): ServerState => {
+  if (!global.__goldStarServerStateMap) {
+    global.__goldStarServerStateMap = {};
+  }
+  if (!global.__goldStarServerStateMap[terminalId]) {
+    global.__goldStarServerStateMap[terminalId] = createInitialState(terminalId);
+  }
+  return global.__goldStarServerStateMap[terminalId];
+};
+
+const loadState = async (terminalId: TerminalId = 'primary'): Promise<ServerState> => {
+  const stored = await redisGet<ServerState>(REDIS_KEYS[terminalId]);
   if (stored) {
-    // back-fill missing equitySnapshots field for old stored states
     if (!stored.equitySnapshots) stored.equitySnapshots = [];
     return stored;
   }
-  return getMemoryStore();
+  return getMemoryStore(terminalId);
 };
 
-const saveState = async (state: ServerState): Promise<void> => {
-  global.__goldStarServerState = state;
-  await redisSet(REDIS_KEY, state);
+const saveState = async (state: ServerState, terminalId: TerminalId = 'primary'): Promise<void> => {
+  if (!global.__goldStarServerStateMap) {
+    global.__goldStarServerStateMap = {};
+  }
+  global.__goldStarServerStateMap[terminalId] = state;
+  await redisSet(REDIS_KEYS[terminalId], state);
 };
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
@@ -213,33 +247,50 @@ function recalculateStats(data: DashboardData, balance: number) {
 
 // ── MT5Service ───────────────────────────────────────────────────────────────
 
-function normalizeClosedTrade(t: HistoricalTrade): HistoricalTrade {
+function normalizePosition(p: Position, defaultSlug: StrategySlug = 'gold-star'): Position {
+  return {
+    ...p,
+    strategySlug: p.strategySlug ?? classifyTradeStrategy(p, defaultSlug),
+  };
+}
+
+function normalizeClosedTrade(t: HistoricalTrade, defaultSlug: StrategySlug = 'gold-star'): HistoricalTrade {
   const profit = t.profit ?? 0;
   const rawPips =
     t.pips ??
     Math.abs((t.closePrice ?? 0) - (t.openPrice ?? 0)) *
-      (t.symbol?.toUpperCase().includes('XAU') || t.symbol?.toUpperCase().includes('GOLD') ? 10 : 10000);
+      (t.symbol?.toUpperCase().includes('XAU') || t.symbol?.toUpperCase().includes('GOLD')
+        ? 10
+        : t.symbol?.toUpperCase().includes('BTC')
+        ? 1
+        : 10000);
   const pips = Number((profit >= 0 ? Math.abs(rawPips) : -Math.abs(rawPips)).toFixed(1));
   return {
     ...t,
     pips,
     duration: t.duration ?? 'Closed',
+    strategySlug: t.strategySlug ?? classifyTradeStrategy(t, defaultSlug),
   };
 }
 
 export class MT5Service {
-  static async getDashboardData(): Promise<DashboardData> {
-    const store = await loadState();
+  static async getDashboardData(terminalId: TerminalId = 'primary'): Promise<DashboardData> {
+    const tid = normalizeTerminalId(terminalId);
+    const store = await loadState(tid);
     const now = Date.now();
-    const data = store.currentData;
+    const data: DashboardData = JSON.parse(JSON.stringify(store.currentData));
 
     if (store.lastHeartbeat === 0 || now - store.lastHeartbeat > store.disconnectTimeoutMs) {
       data.botConfig.isLiveConnected = false;
       data.botConfig.status = store.lastHeartbeat === 0 ? 'PAUSED' : 'DISCONNECTED';
     }
 
+    const defaultSlug: StrategySlug = 'gold-star';
+    if (Array.isArray(data.openPositions)) {
+      data.openPositions = data.openPositions.map((p) => normalizePosition(p, defaultSlug));
+    }
     if (Array.isArray(data.closedTrades)) {
-      data.closedTrades = data.closedTrades.map(normalizeClosedTrade);
+      data.closedTrades = data.closedTrades.map((t) => normalizeClosedTrade(t, defaultSlug));
     }
 
     if (!data.botConfig.whatsappNumber) {
@@ -264,6 +315,7 @@ export class MT5Service {
   }
 
   static async ingestMT5Update(payload: {
+    terminalId?: string;
     account?: {
       balance?: number;
       equity?: number;
@@ -274,13 +326,25 @@ export class MT5Service {
       server?: string;
       login?: string;
     };
+    balance?: number;
+    equity?: number;
+    margin?: number;
+    freeMargin?: number;
+    marginLevel?: number;
+    broker?: string;
+    server?: string;
+    accountNumber?: string;
+    symbol?: string;
     positions?: Position[];
+    openPositions?: Position[];
     history?: HistoricalTrade[];
+    closedTrades?: HistoricalTrade[];
     botName?: string;
     version?: string;
     timestamp?: number;
   }): Promise<DashboardData> {
-    const store = await loadState();
+    const tid = normalizeTerminalId(payload.terminalId);
+    const store = await loadState(tid);
     store.lastHeartbeat = Date.now();
     const data = store.currentData;
 
@@ -289,59 +353,177 @@ export class MT5Service {
     data.botConfig.lastUpdated = new Date().toISOString();
     data.botConfig.connectionMode = 'bridge';
 
-    if (payload.botName)          data.botConfig.botName = payload.botName;
-    if (payload.version)          data.botConfig.version = payload.version;
-    if (payload.account?.broker)  data.botConfig.broker = payload.account.broker;
-    if (payload.account?.server)  data.botConfig.server = payload.account.server;
-    if (payload.account?.login)   data.botConfig.accountNumber = payload.account.login;
+    if (payload.botName) data.botConfig.botName = payload.botName;
+    if (payload.version) data.botConfig.version = payload.version;
+    const broker = payload.account?.broker ?? payload.broker;
+    const server = payload.account?.server ?? payload.server;
+    const login = payload.account?.login ?? payload.accountNumber;
+    if (broker) data.botConfig.broker = broker;
+    if (server) data.botConfig.server = server;
+    if (login) data.botConfig.accountNumber = login;
+    if (payload.symbol) data.botConfig.symbol = payload.symbol;
 
-    const balance = payload.account?.balance ?? data.metrics.balance;
-    const equity  = payload.account?.equity  ?? data.metrics.equity;
+    const inBalance = payload.account?.balance ?? payload.balance;
+    const inEquity = payload.account?.equity ?? payload.equity;
+    const balance = inBalance ?? data.metrics.balance;
+    const equity = inEquity ?? data.metrics.equity;
 
-    if (payload.account?.balance !== undefined) data.metrics.balance = balance;
-    if (payload.account?.equity  !== undefined) {
-      data.metrics.equity      = equity;
+    if (inBalance !== undefined) data.metrics.balance = balance;
+    if (inEquity !== undefined) {
+      data.metrics.equity = equity;
       data.metrics.floatingPnl = Number((equity - balance).toFixed(2));
     }
-    if (payload.account?.freeMargin   !== undefined) data.metrics.freeMargin   = payload.account.freeMargin;
-    if (payload.account?.marginLevel  !== undefined) data.metrics.marginLevel  = payload.account.marginLevel;
-    if (payload.account?.margin       !== undefined) data.metrics.margin       = payload.account.margin;
 
-    // Equity curve snapshot
+    const inFreeMargin = payload.account?.freeMargin ?? payload.freeMargin;
+    const inMarginLevel = payload.account?.marginLevel ?? payload.marginLevel;
+    const inMargin = payload.account?.margin ?? payload.margin;
+    if (inFreeMargin !== undefined) data.metrics.freeMargin = inFreeMargin;
+    if (inMarginLevel !== undefined) data.metrics.marginLevel = inMarginLevel;
+    if (inMargin !== undefined) data.metrics.margin = inMargin;
+
     store.equitySnapshots = appendEquitySnapshot(store.equitySnapshots, equity);
 
-    // Open positions
-    if (payload.positions) data.openPositions = payload.positions;
+    const incomingPositions = payload.positions ?? payload.openPositions;
+    if (incomingPositions) {
+      data.openPositions = incomingPositions.map((p) => normalizePosition(p, 'gold-star'));
+    }
 
-    // Closed trade history — merge & deduplicate by ticket
-    if (payload.history && payload.history.length > 0) {
-      const existing = new Map(data.closedTrades.map(t => [t.ticket ?? t.closeTime, normalizeClosedTrade(t)]));
-      payload.history.forEach(t => existing.set(t.ticket ?? t.closeTime, normalizeClosedTrade(t)));
-      data.closedTrades = Array.from(existing.values())
-        .sort((a, b) => (a.closeTime > b.closeTime ? -1 : 1)); // newest first
+    const incomingHistory = payload.history ?? payload.closedTrades;
+    if (incomingHistory && incomingHistory.length > 0) {
+      const existing = new Map(
+        data.closedTrades.map((t) => [t.ticket ?? t.closeTime, normalizeClosedTrade(t, 'gold-star')])
+      );
+      incomingHistory.forEach((t) =>
+        existing.set(t.ticket ?? t.closeTime, normalizeClosedTrade(t, 'gold-star'))
+      );
+      data.closedTrades = Array.from(existing.values()).sort((a, b) =>
+        a.closeTime > b.closeTime ? -1 : 1
+      );
       recalculateStats(data, balance);
     }
 
     data.equityCurve = buildEquityCurve(store.equitySnapshots, data.dailyPnlHistory, balance, equity);
 
-    await saveState(store);
+    await saveState(store, tid);
     return data;
   }
 
-  static async updateConfig(partialConfig: Partial<BotConfig>): Promise<BotConfig> {
-    const store = await loadState();
+  static async getStrategySummaries(): Promise<{
+    primaryConnected: boolean;
+    desk5Connected: boolean;
+    strategies: StrategySummary[];
+  }> {
+    const [primary, desk5] = await Promise.all([
+      MT5Service.getDashboardData('primary'),
+      MT5Service.getDashboardData('desk-5'),
+    ]);
+
+    const strategies: StrategySummary[] = STRATEGY_CATALOG.map((meta) => {
+      const source = meta.terminalSource === 'primary' ? primary : desk5;
+      const trades =
+        meta.terminalSource === 'primary'
+          ? source.closedTrades
+          : source.closedTrades.filter((t) => t.strategySlug === meta.slug);
+      const positions =
+        meta.terminalSource === 'primary'
+          ? source.openPositions
+          : source.openPositions.filter((p) => p.strategySlug === meta.slug);
+
+      let grossWin = 0;
+      let grossLoss = 0;
+      let winTrades = 0;
+      let lossTrades = 0;
+      for (const t of trades) {
+        const p = t.profit ?? 0;
+        if (p >= 0) {
+          winTrades++;
+          grossWin += p;
+        } else {
+          lossTrades++;
+          grossLoss += Math.abs(p);
+        }
+      }
+      const totalTrades = trades.length;
+      const netProfit = Number((grossWin - grossLoss).toFixed(2));
+      const floatingPnl = Number(positions.reduce((s, p) => s + (p.profit ?? 0), 0).toFixed(2));
+      const winRate = totalTrades > 0 ? Number(((winTrades / totalTrades) * 100).toFixed(1)) : 0;
+      const profitFactor =
+        grossLoss > 0 ? Number((grossWin / grossLoss).toFixed(2)) : grossWin > 0 ? 99 : 0;
+
+      return {
+        meta,
+        isLiveConnected: source.botConfig.isLiveConnected,
+        totalTrades,
+        winTrades,
+        lossTrades,
+        winRate,
+        netProfit,
+        floatingPnl,
+        openCount: positions.length,
+        profitFactor,
+        lastUpdated: source.botConfig.lastUpdated,
+      };
+    });
+
+    return {
+      primaryConnected: primary.botConfig.isLiveConnected,
+      desk5Connected: desk5.botConfig.isLiveConnected,
+      strategies,
+    };
+  }
+
+  static async getStrategyDashboard(slug: StrategySlug): Promise<{
+    strategy: NonNullable<ReturnType<typeof getStrategyMeta>>;
+    data: DashboardData;
+  } | null> {
+    const meta = getStrategyMeta(slug);
+    if (!meta) return null;
+
+    const source = await MT5Service.getDashboardData(meta.terminalSource);
+    if (meta.terminalSource === 'primary') {
+      return { strategy: meta, data: source };
+    }
+
+    const filtered: DashboardData = JSON.parse(JSON.stringify(source));
+    filtered.botConfig.botName = meta.name;
+    filtered.botConfig.symbol = meta.symbol;
+    filtered.openPositions = source.openPositions.filter((p) => p.strategySlug === slug);
+    filtered.closedTrades = source.closedTrades.filter((t) => t.strategySlug === slug);
+    filtered.metrics.floatingPnl = Number(
+      filtered.openPositions.reduce((s, p) => s + (p.profit ?? 0), 0).toFixed(2)
+    );
+
+    const baseBalance = filtered.metrics.balance > 0 ? filtered.metrics.balance : 100;
+    recalculateStats(filtered, baseBalance);
+    filtered.equityCurve = buildEquityCurve(
+      [],
+      filtered.dailyPnlHistory,
+      baseBalance,
+      baseBalance + filtered.metrics.floatingPnl
+    );
+
+    return { strategy: meta, data: filtered };
+  }
+
+  static async updateConfig(
+    partialConfig: Partial<BotConfig>,
+    terminalId: TerminalId = 'primary'
+  ): Promise<BotConfig> {
+    const tid = normalizeTerminalId(terminalId);
+    const store = await loadState(tid);
     store.currentData.botConfig = {
       ...store.currentData.botConfig,
       ...partialConfig,
       lastUpdated: new Date().toISOString(),
     };
-    await saveState(store);
+    await saveState(store, tid);
     return store.currentData.botConfig;
   }
 
-  static async resetToDemo(): Promise<DashboardData> {
-    const store = createInitialState();
-    await saveState(store);
+  static async resetToDemo(terminalId: TerminalId = 'primary'): Promise<DashboardData> {
+    const tid = normalizeTerminalId(terminalId);
+    const store = createInitialState(tid);
+    await saveState(store, tid);
     return store.currentData;
   }
 }

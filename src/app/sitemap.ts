@@ -17,6 +17,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'hourly',
       priority: 0.9,
     },
+    ...['gold-star', 'gold-scalp-x', 'zone3', 'btc-swing-ea', 'expert-macd'].map((slug) => ({
+      url: `${BASE_URL}/strategies/${slug}`,
+      lastModified: now,
+      changeFrequency: 'hourly' as const,
+      priority: 0.85,
+    })),
     {
       url: `${BASE_URL}/privacy`,
       lastModified: now,
