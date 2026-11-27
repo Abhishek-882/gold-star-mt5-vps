@@ -35,7 +35,6 @@ import { StrategyShowcaseSection } from './StrategyShowcaseSection';
 import { HeroParticles } from './HeroParticles';
 import { ScrollStorySection } from './ScrollStorySection';
 import { StrategyLeaderboard } from './StrategyLeaderboard';
-import { PromoVideoSection } from './PromoVideoSection';
 
 export function IntroPage() {
   const router = useRouter();
@@ -336,9 +335,6 @@ export function IntroPage() {
 
       {/* Live 5-Strategy Comparison Leaderboard */}
       <StrategyLeaderboard />
-
-      {/* Promo Video — 13s cinematic master clip */}
-      <PromoVideoSection />
 
       {/* 5. 3-Step Setup Guide */}
       <section className="py-12 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto w-full space-y-8">
