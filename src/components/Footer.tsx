@@ -81,7 +81,15 @@ export function Footer() {
             <Star className="w-3.5 h-3.5 text-gold-400 fill-gold-400" />
             <span>© {new Date().getFullYear()} Gold Star MT5 Algorithm. All rights reserved.</span>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-4">
+            <a href="/privacy" className="hover:text-gold-400 transition-colors">
+              Privacy Policy
+            </a>
+            <span>•</span>
+            <a href="/terms" className="hover:text-gold-400 transition-colors">
+              Terms
+            </a>
+            <span>•</span>
             <a href="#contact-section" className="hover:text-gold-400 transition-colors">
               Contact Desk
             </a>

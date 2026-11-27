@@ -178,8 +178,15 @@ export function GoldStarChatWidget() {
 
   useEffect(() => {
     const handleOpen = () => setIsOpen(true);
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsOpen(false);
+    };
     window.addEventListener('open-goldstar-ai', handleOpen);
-    return () => window.removeEventListener('open-goldstar-ai', handleOpen);
+    window.addEventListener('keydown', handleKey);
+    return () => {
+      window.removeEventListener('open-goldstar-ai', handleOpen);
+      window.removeEventListener('keydown', handleKey);
+    };
   }, []);
 
   useEffect(() => {
