@@ -301,7 +301,7 @@ export function ScrollStorySection() {
               <div className="mt-5 pt-4 border-t border-dark-border space-y-3">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div className="flex flex-wrap items-center gap-1.5 text-[11px] font-mono">
-                    {['Gold Star ★', 'Gold Scalp X', 'Zone3', 'BTC Swing EA', 'Expert MACD'].map(
+                    {['Valen Prime ★', 'Valen Edge', 'Valen Triad', 'Valen Arc', 'Valen Pulse'].map(
                       (name, i) => (
                         <span
                           key={name}
