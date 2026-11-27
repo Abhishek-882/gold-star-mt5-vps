@@ -100,7 +100,7 @@ export function StrategyShowcaseSection() {
       {/* Flagship Main Star Card */}
       {mainStar && (
         <Link
-          href={`/strategies/${mainStar.meta.slug}`}
+          href="/terminal"
           className="block rounded-3xl bg-gradient-to-br from-gold-500/15 via-dark-card to-dark-elevated border border-gold-500/50 p-6 sm:p-7 hover:border-gold-400 transition-all shadow-gold-subtle group"
         >
           <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
@@ -146,7 +146,7 @@ export function StrategyShowcaseSection() {
                 </div>
               </div>
               <div className="p-3 rounded-xl bg-gold-500/15 border border-gold-500/40 flex flex-col justify-center items-center text-gold-300 font-bold text-xs gap-1 group-hover:bg-gold-500 group-hover:text-dark-base transition-colors">
-                <span>View Page</span>
+                <span>Open Terminal</span>
                 <ArrowRight className="w-4 h-4" />
               </div>
             </div>
@@ -159,7 +159,7 @@ export function StrategyShowcaseSection() {
         {deskStrategies.map((item) => (
           <Link
             key={item.meta.slug}
-            href={`/strategies/${item.meta.slug}`}
+            href={`/terminal?strategy=${item.meta.slug}`}
             className="rounded-2xl bg-dark-card border border-dark-border hover:border-gold-500/40 p-5 flex flex-col justify-between gap-4 transition-all card-elevate group"
           >
             <div className="space-y-2">

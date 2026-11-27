@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { DashboardData } from '@/types/trading';
+import { DashboardData, StrategySlug } from '@/types/trading';
 import { defaultDashboardData } from '@/lib/defaultData';
 
 interface TradingDataContextType {
@@ -9,6 +9,8 @@ interface TradingDataContextType {
   isLoading: boolean;
   isRefreshing: boolean;
   lastSyncFormatted: string;
+  activeStrategy: StrategySlug;
+  setActiveStrategy: (slug: StrategySlug) => void;
   refreshData: () => Promise<void>;
   isSettingsOpen: boolean;
   setIsSettingsOpen: (open: boolean) => void;
@@ -25,6 +27,7 @@ export function TradingDataProvider({ children }: { children: React.ReactNode })
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
   const [lastSyncFormatted, setLastSyncFormatted] = useState<string>('Syncing...');
   const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
+  const [activeStrategy, setActiveStrategy] = useState<StrategySlug>('gold-star');
 
   const calculateLastSync = useCallback((isoString: string) => {
     if (!isoString) return 'Just now';
@@ -40,7 +43,11 @@ export function TradingDataProvider({ children }: { children: React.ReactNode })
   const fetchData = useCallback(async (isManual = false) => {
     if (isManual) setIsRefreshing(true);
     try {
-      const res = await fetch('/api/mt5/live?t=' + Date.now());
+      const url =
+        activeStrategy === 'gold-star'
+          ? '/api/mt5/live?t=' + Date.now()
+          : `/api/mt5/strategies?slug=${encodeURIComponent(activeStrategy)}&t=${Date.now()}`;
+      const res = await fetch(url);
       if (res.ok) {
         const json = await res.json();
         if (json.success && json.data) {
@@ -54,10 +61,11 @@ export function TradingDataProvider({ children }: { children: React.ReactNode })
       setIsLoading(false);
       if (isManual) setIsRefreshing(false);
     }
-  }, [calculateLastSync]);
+  }, [activeStrategy, calculateLastSync]);
 
-  // Initial load
+  // Initial load & re-fetch when strategy changes
   useEffect(() => {
+    setIsLoading(true);
     fetchData();
   }, [fetchData]);
 
@@ -135,6 +143,8 @@ export function TradingDataProvider({ children }: { children: React.ReactNode })
         isLoading,
         isRefreshing,
         lastSyncFormatted,
+        activeStrategy,
+        setActiveStrategy,
         refreshData: () => fetchData(true),
         isSettingsOpen,
         setIsSettingsOpen,
