@@ -3,6 +3,7 @@
 import React from 'react';
 import { useTradingData } from '@/context/TradingDataContext';
 import { useLanguage } from '@/context/LanguageContext';
+import { getStrategyMeta } from '@/lib/strategyCatalog';
 import {
   Cpu,
   ShieldCheck,
@@ -15,9 +16,13 @@ import {
 } from 'lucide-react';
 
 export function BotStatusCard() {
-  const { data } = useTradingData();
+  const { data, activeStrategy } = useTradingData();
   const { t } = useLanguage();
   const { botConfig } = data;
+  const strategyMeta = getStrategyMeta(activeStrategy);
+  const displayBotName = strategyMeta
+    ? `${strategyMeta.name} (${strategyMeta.symbol} Pro)`
+    : botConfig.botName;
 
   const isLive = botConfig.isLiveConnected && botConfig.status === 'LIVE';
 
@@ -35,7 +40,7 @@ export function BotStatusCard() {
           </div>
           <div>
             <h3 className="text-base sm:text-lg font-bold text-white tracking-tight flex items-center gap-2">
-              {botConfig.botName}
+              {displayBotName}
               <span className="text-xs font-mono font-semibold px-2 py-0.5 rounded bg-gold-500/20 text-gold-300 border border-gold-500/30">
                 {botConfig.version}
               </span>

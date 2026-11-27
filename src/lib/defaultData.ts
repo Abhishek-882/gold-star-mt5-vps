@@ -1,7 +1,7 @@
 import { DashboardData, HistoricalTrade, Position, EquityPoint, DailyPnl, BotConfig, AccountMetrics } from '@/types/trading';
 
 export const initialBotConfig: BotConfig = {
-  botName: "Gold Star (XAUUSD Pro)",
+  botName: "Valen Prime (XAUUSD Pro)",
   status: "PAUSED",
   broker: "Vantage Markets",
   server: "Awaiting Live Vantage MT5 Connection",
