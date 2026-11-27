@@ -85,7 +85,7 @@ export function PromoVideoSection() {
           See Gold Star MT5 in Action
         </h2>
         <p className="text-sm text-slate-400">
-          13 seconds · 5 strategies · Zero Martingale · Read-only verified
+          10 seconds · 5 strategies · Zero Martingale · Read-only verified
         </p>
       </div>
 
@@ -232,7 +232,7 @@ export function PromoVideoSection() {
         <div className="absolute top-3 left-3 z-20">
           <span className="inline-flex items-center gap-1.5 bg-black/70 border border-gold-500/30 rounded-full px-2.5 py-1 text-[10px] font-semibold text-gold-400 backdrop-blur-sm">
             <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
-            LIVE · 13s PROMO
+            LIVE · 10s PROMO
           </span>
         </div>
       </div>
