@@ -8,8 +8,8 @@ import {
 export const STRATEGY_CATALOG: StrategyMeta[] = [
   {
     slug: 'gold-star',
-    name: 'Gold Star',
-    shortName: 'Gold Star ★',
+    name: 'Valen Prime',
+    shortName: 'Valen Prime ★',
     tagline: 'Main Star • Flagship XAUUSD Breakout',
     symbol: 'XAUUSD',
     badge: 'MAIN STAR',
@@ -22,8 +22,8 @@ export const STRATEGY_CATALOG: StrategyMeta[] = [
   },
   {
     slug: 'gold-scalp-x',
-    name: 'Gold Scalp X',
-    shortName: 'Gold Scalp X',
+    name: 'Valen Edge',
+    shortName: 'Valen Edge',
     tagline: 'Dual-Magic XAUUSD Precision Scalper',
     symbol: 'XAUUSD',
     badge: 'MT5 #2 DESK',
@@ -35,8 +35,8 @@ export const STRATEGY_CATALOG: StrategyMeta[] = [
   },
   {
     slug: 'zone3',
-    name: 'Zone3',
-    shortName: 'Zone3',
+    name: 'Valen Triad',
+    shortName: 'Valen Triad',
     tagline: '3-Preset XAUUSD Zone Matrix',
     symbol: 'XAUUSD',
     badge: 'MT5 #2 DESK',
@@ -48,8 +48,8 @@ export const STRATEGY_CATALOG: StrategyMeta[] = [
   },
   {
     slug: 'btc-swing-ea',
-    name: 'BTC Swing EA',
-    shortName: 'BTC Swing EA',
+    name: 'Valen Arc',
+    shortName: 'Valen Arc',
     tagline: '3-Lane BTCUSD Swing Architecture',
     symbol: 'BTCUSD',
     badge: 'MT5 #2 DESK',
@@ -61,8 +61,8 @@ export const STRATEGY_CATALOG: StrategyMeta[] = [
   },
   {
     slug: 'expert-macd',
-    name: 'Expert MACD',
-    shortName: 'Expert MACD',
+    name: 'Valen Pulse',
+    shortName: 'Valen Pulse',
     tagline: 'XAUUSD M1 Momentum Execution',
     symbol: 'XAUUSD',
     badge: 'MT5 #2 DESK',
