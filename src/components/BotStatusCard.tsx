@@ -119,20 +119,45 @@ export function BotStatusCard() {
       </div>
 
       {/* Safety Invariants Checklist */}
-      <div className="mt-4 pt-4 border-t border-dark-border flex flex-wrap items-center justify-between gap-3 text-xs text-slate-300">
+      <div
+        key={botConfig.botName}
+        className="mt-4 pt-4 border-t border-dark-border flex flex-wrap items-center justify-between gap-3 text-xs text-slate-300"
+      >
         <div className="flex flex-wrap items-center gap-4">
-          <div className="flex items-center gap-1.5 text-emerald-400 font-mono">
-            <CheckCircle2 className="w-3.5 h-3.5" />
-            <span>Pre-calculated Hard Stop-Loss (25-45 Pips)</span>
-          </div>
-          <div className="flex items-center gap-1.5 text-emerald-400 font-mono">
-            <CheckCircle2 className="w-3.5 h-3.5" />
-            <span>Zero Martingale / Zero Grid</span>
-          </div>
-          <div className="flex items-center gap-1.5 text-emerald-400 font-mono">
-            <CheckCircle2 className="w-3.5 h-3.5" />
-            <span>Tier-1 Macro News Filter Active</span>
-          </div>
+          {[
+            'Pre-calculated Hard Stop-Loss (25-45 Pips)',
+            'Zero Martingale / Zero Grid',
+            'Tier-1 Macro News Filter Active',
+          ].map((label, idx) => (
+            <div key={label} className="flex items-center gap-1.5 text-emerald-400 font-mono">
+              <svg
+                viewBox="0 0 24 24"
+                className="w-4 h-4 shrink-0"
+                fill="none"
+                aria-hidden="true"
+              >
+                <circle
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  className="draw-check-circle"
+                  style={{ animationDelay: `${idx * 140}ms` }}
+                />
+                <path
+                  d="m8 12.5 2.5 2.5 5.5-5.5"
+                  stroke="currentColor"
+                  strokeWidth="2.2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="draw-check-tick"
+                  style={{ animationDelay: `${idx * 140 + 220}ms` }}
+                />
+              </svg>
+              <span>{label}</span>
+            </div>
+          ))}
         </div>
 
         <div className="text-[11px] text-slate-400 font-mono">

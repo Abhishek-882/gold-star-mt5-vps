@@ -198,14 +198,35 @@ button, a, select, input {
   animation: modalSpringIn 220ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
+@keyframes drawStroke {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+.draw-check-circle {
+  stroke-dasharray: 63;
+  stroke-dashoffset: 63;
+  animation: drawStroke 420ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.draw-check-tick {
+  stroke-dasharray: 20;
+  stroke-dashoffset: 20;
+  animation: drawStroke 280ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .page-enter,
   .modal-spring-in,
   .fintech-sweep::after,
   .btn-sheen::after,
-  .gold-border-beam::before {
+  .gold-border-beam::before,
+  .draw-check-circle,
+  .draw-check-tick {
     animation: none !important;
     transition: none !important;
+    stroke-dashoffset: 0 !important;
   }
   .card-elevate:hover,
   .tactile-press:active {

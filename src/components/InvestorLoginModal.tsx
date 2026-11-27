@@ -24,7 +24,7 @@ export function InvestorLoginModal() {
       particleCount: 60,
       spread: 60,
       origin: { y: 0.6 },
-      colors: ['#FFD700', '#00C087', '#FFFFFF'],
+      colors: ['#D4A853', '#10B981', '#FFFFFF'],
     });
   };
 
@@ -82,7 +82,7 @@ export function InvestorLoginModal() {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="relative w-full max-w-md rounded-3xl bg-dark-card border border-gold-500/40 shadow-2xl p-6 sm:p-7 overflow-hidden max-h-[92vh] overflow-y-auto">
+      <div className="modal-spring-in relative w-full max-w-md rounded-3xl bg-dark-card border border-gold-500/40 shadow-2xl p-6 sm:p-7 overflow-hidden max-h-[92vh] overflow-y-auto">
         {/* Glow accent */}
         <div className="absolute -top-16 -right-16 w-44 h-44 bg-gold-500/15 rounded-full blur-2xl pointer-events-none"></div>
 

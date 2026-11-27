@@ -17,6 +17,7 @@ import { Footer } from '@/components/Footer';
 import { StickyMobileBar } from '@/components/StickyMobileBar';
 import { SettingsModal } from '@/components/SettingsModal';
 import { InvestorLoginModal } from '@/components/InvestorLoginModal';
+import { LiveSyncToast } from '@/components/LiveSyncToast';
 import { useTradingData } from '@/context/TradingDataContext';
 import { STRATEGY_CATALOG, getStrategyMeta } from '@/lib/strategyCatalog';
 import { StrategySlug } from '@/types/trading';
@@ -53,6 +54,7 @@ function TerminalContent() {
 
       {/* 2. Main Navigation Header */}
       <Header />
+      <LiveSyncToast />
 
       {/* 3. Primary Dashboard Content Canvas */}
       <main id="main-content" className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
@@ -72,25 +74,41 @@ function TerminalContent() {
           <div className="flex flex-wrap items-center gap-1.5">
             {STRATEGY_CATALOG.map((s) => {
               const isSelected = s.slug === activeStrategy;
+              const shortSym = s.symbol.includes('BTC') ? 'BTC' : 'XAU';
               return (
                 <button
                   key={s.slug}
                   type="button"
                   onClick={() => handleSelect(s.slug)}
-                  className={`px-3 py-1.5 rounded-xl border text-xs font-bold transition-all flex items-center gap-1.5 ${
+                  className={`px-3 py-1.5 rounded-xl border text-xs font-bold tactile-press flex items-center gap-1.5 ${
                     isSelected
                       ? 'bg-gold-500 text-dark-base border-gold-400 shadow-gold-subtle'
                       : 'bg-dark-elevated hover:bg-dark-hover border-dark-border text-slate-300'
                   }`}
                 >
-                  {s.isMainStar && (
+                  {s.isMainStar ? (
                     <Star
                       className={`w-3 h-3 ${
                         isSelected ? 'fill-dark-base' : 'fill-gold-400 text-gold-400'
                       }`}
                     />
+                  ) : (
+                    <span
+                      className={`w-1.5 h-1.5 rounded-full ${
+                        isSelected ? 'bg-dark-base' : 'bg-fintech-green/70'
+                      }`}
+                    />
                   )}
                   <span>{s.name}</span>
+                  <span
+                    className={`text-[9px] font-mono px-1 py-0.2 rounded ${
+                      isSelected
+                        ? 'bg-dark-base/15 text-dark-base'
+                        : 'bg-dark-base text-slate-400'
+                    }`}
+                  >
+                    {shortSym}
+                  </span>
                 </button>
               );
             })}
